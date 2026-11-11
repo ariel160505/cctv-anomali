@@ -48,7 +48,7 @@ export function LobbyScreen({ leaderboard, playerName, onPlayerNameChange, onSta
       <section className="lobby-grid">
         <motion.div
           className="hero-panel panel-frame"
-          initial={{ opacity: 0, y: 14 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: 'easeOut' }}
         >
@@ -97,7 +97,7 @@ export function LobbyScreen({ leaderboard, playerName, onPlayerNameChange, onSta
 
         <motion.aside
           className="side-column"
-          initial={{ opacity: 0, y: 14 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.12, ease: 'easeOut' }}
         >

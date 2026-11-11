@@ -108,7 +108,7 @@ export function CctvPatrolGame() {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'BUTTON'].includes(event.target.tagName)) return
+      if (event.target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return
       if (screen === 'game' && event.key.toLowerCase() === 'm') {
         event.preventDefault()
         setMapOpen((isOpen) => !isOpen)
