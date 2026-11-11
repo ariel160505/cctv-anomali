@@ -260,6 +260,7 @@ kbd { display: inline-grid; place-items: center; min-width: 19px; min-height: 18
 .timer-stat strong { color: #e9e9d9; font: 700 19px var(--mono); letter-spacing: .06em; }
 .timer-urgent strong { color: var(--red); animation: timer-pulse .8s ease-in-out infinite alternate; }
 .timer-urgent > span { color: #db8c82; }
+.timer-paused strong, .timer-paused > span { color: var(--amber); }
 @keyframes timer-pulse { to { opacity: .55; } }
 .surveillance-panel { padding: 0 13px 0; overflow: hidden; }
 .surveillance-toolbar { justify-content: space-between; min-height: 43px; padding: 0 7px; color: #889585; font: 600 8px var(--mono); letter-spacing: .06em; }
@@ -268,7 +269,10 @@ kbd { display: inline-grid; place-items: center; min-width: 19px; min-height: 18
 .toolbar-right { gap: 14px; }
 .noise-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #8b9988; font: 600 8px var(--mono); cursor: pointer; }
 .noise-toggle:hover, .noise-toggle[aria-pressed=true] { border-color: #39473a; background: #202c22; color: var(--green); }
-.noise-toggle svg, .privacy-label svg { width: 12px; height: 12px; }
+.noise-toggle svg, .privacy-label svg, .pause-toggle svg { width: 12px; height: 12px; }
+.pause-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #8b9988; font: 600 8px var(--mono); cursor: pointer; }
+.pause-toggle:hover { border-color: #39473a; background: #202c22; color: var(--green); }
+.pause-toggle kbd { min-width: 15px; min-height: 15px; font-size: 7px; }
 .privacy-label { display: flex; align-items: center; gap: 6px; color: #7d897b; }
 .camera-layout { display: grid; grid-template-columns: 82px minmax(0, 1fr) 82px; align-items: center; gap: 10px; }
 .feed-arrow { min-height: 71px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px solid #2e3a2e; border-radius: 8px; background: #1b261d; color: #b9c4b2; cursor: pointer; transition: border-color .18s, background .18s, color .18s; }
@@ -335,6 +339,19 @@ kbd { display: inline-grid; place-items: center; min-width: 19px; min-height: 18
 .game-footer { justify-content: center; gap: clamp(14px, 5vw, 64px); min-height: 47px; color: #7e8b7c; font: 600 8px var(--mono); letter-spacing: .05em; }
 .game-footer > span { display: inline-flex; align-items: center; gap: 5px; }
 .game-footer kbd { min-height: 16px; min-width: 16px; }
+
+.pause-backdrop { position: fixed; z-index: 30; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(7, 12, 9, .84); backdrop-filter: blur(13px); }
+.pause-card { width: min(100%, 450px); padding: 34px 36px 21px; text-align: center; box-shadow: 0 24px 90px rgba(0, 0, 0, .48); }
+.pause-emblem { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 auto 19px; border: 1px solid rgba(237, 189, 112, .25); border-radius: 16px; background: rgba(237, 189, 112, .08); color: var(--amber); }
+.pause-emblem svg { width: 22px; height: 22px; }
+.pause-card h2 { margin: 14px 0 8px; color: var(--ink); font-size: clamp(26px, 5vw, 34px); line-height: 1.05; letter-spacing: -.055em; }
+.pause-card h2 em { color: var(--green); font-style: normal; }
+.pause-card > p { max-width: 315px; margin: 0 auto 20px; color: #929d90; font-size: 11px; line-height: 1.65; }
+.pause-actions { display: flex; flex-direction: column; gap: 9px; }
+.pause-actions .start-button { margin-top: 0; }
+.pause-actions .secondary-button { min-height: 47px; }
+.pause-key-hint { margin-top: 17px; color: #788477; font: 600 7px var(--mono); letter-spacing: .06em; }
+.pause-key-hint kbd { min-width: 17px; min-height: 16px; margin: 0 2px; }
 
 .result-shell { min-height: 100vh; display: grid; place-items: center; padding: 30px 18px; background: radial-gradient(ellipse at 50% 36%, rgba(78, 109, 68, .17), transparent 42%), #101812; }
 .result-card { position: relative; overflow: hidden; width: min(100%, 600px); padding: 35px 38px 17px; }
@@ -492,6 +509,10 @@ kbd { display: inline-grid; place-items: center; min-width: 19px; min-height: 18
   .game-footer { flex-wrap: wrap; gap: 8px 13px; min-height: 39px; padding-top: 7px; font-size: 6px; }
   .game-footer > span { gap: 3px; }
   .game-footer kbd { min-width: 14px; min-height: 14px; font-size: 7px; }
+  .pause-card { padding: 26px 20px 18px; }
+  .pause-emblem { width: 48px; height: 48px; margin-bottom: 15px; }
+  .pause-card h2 { margin-top: 11px; }
+  .pause-card > p { margin-bottom: 16px; }
   .result-shell { padding: 15px; }
   .result-card { padding: 24px 20px 14px; }
   .result-copy h1 { font-size: clamp(39px, 10vw, 52px); }

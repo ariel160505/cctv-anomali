@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import confetti from 'canvas-confetti'
-import { ArrowLeft, ArrowRight, AudioLines, Camera, Clock3, Crosshair, Map, MapPin, Radio, ShieldCheck, Trophy, Volume2, VolumeX } from 'lucide-react'
+import { ArrowLeft, ArrowRight, AudioLines, Camera, Clock3, Crosshair, Map, MapPin, Pause, Radio, ShieldCheck, Trophy, Volume2, VolumeX } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { CampusMap } from '@/components/game/campus-map'
 import { CctvFeed, createTruantStudent, type TruantStudent } from '@/components/game/cctv-feed'
 import { LobbyScreen } from '@/components/game/lobby-screen'
+import { PauseOverlay } from '@/components/game/pause-overlay'
 import { LOCATIONS, DEFAULT_LEADERBOARD, LEADERBOARD_STORAGE_KEY, formatTime, type CampusLocation, type LeaderboardEntry } from '@/lib/game-data'
 import { useGameAudio } from '@/hooks/use-game-audio'
 
@@ -25,6 +26,7 @@ function getRank(score: number) {
 export function CctvPatrolGame() {
   const [screen, setScreen] = useState<Screen>('lobby')
   const [mapOpen, setMapOpen] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
   const [locationIndex, setLocationIndex] = useState(0)
   const [playerName, setPlayerName] = useState('')
   const [leaderboard, setLeaderboard] = useState(DEFAULT_LEADERBOARD)
@@ -60,30 +62,34 @@ export function CctvPatrolGame() {
   }, [])
 
   useEffect(() => {
-    if (screen !== 'game' || mapOpen) return
+    if (screen !== 'game' || mapOpen || isPaused) return
     const interval = window.setInterval(() => {
       setTimeLeft((remaining) => Math.max(remaining - 1, 0))
     }, 1000)
     return () => window.clearInterval(interval)
-  }, [screen, mapOpen])
+  }, [screen, mapOpen, isPaused])
 
   useEffect(() => {
     if (screen === 'game' && timeLeft === 0) setScreen('results')
   }, [screen, timeLeft])
 
   useEffect(() => {
-    if (screen !== 'game' || mapOpen || student) return
+    if (screen !== 'game' || mapOpen || isPaused || student) return
     const spawnDelay = 1400 + Math.random() * 1700
     const spawnTimeout = window.setTimeout(() => {
       nextStudentRef.current += 1
-      const nextStudent = createTruantStudent(nextStudentRef.current)
-      setStudent(nextStudent)
-      window.setTimeout(() => {
-        setStudent((current) => current?.id === nextStudent.id ? null : current)
-      }, 2500 + Math.random() * 1300)
+      setStudent(createTruantStudent(nextStudentRef.current))
     }, spawnDelay)
     return () => window.clearTimeout(spawnTimeout)
-  }, [screen, mapOpen, locationIndex, student])
+  }, [screen, mapOpen, isPaused, locationIndex, student])
+
+  useEffect(() => {
+    if (screen !== 'game' || mapOpen || isPaused || !student) return
+    const despawnTimeout = window.setTimeout(() => {
+      setStudent((current) => current?.id === student.id ? null : current)
+    }, 2500 + Math.random() * 1300)
+    return () => window.clearTimeout(despawnTimeout)
+  }, [screen, mapOpen, isPaused, student])
 
   useEffect(() => {
     if (screen !== 'results' || saveResultRef.current) return
@@ -109,16 +115,31 @@ export function CctvPatrolGame() {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return
-      if (screen === 'game' && event.key.toLowerCase() === 'm') {
+      if (screen !== 'game') return
+
+      const key = event.key.toLowerCase()
+      if (isPaused) {
+        if (key === 'p' || event.key === 'Escape') setIsPaused(false)
+        if (key === 'm') {
+          setIsPaused(false)
+          setMapOpen(true)
+        }
+        return
+      }
+      if (mapOpen) {
+        if (event.key === 'Escape') setMapOpen(false)
+        return
+      }
+      if (key === 'p') {
         event.preventDefault()
-        setMapOpen((isOpen) => !isOpen)
+        setIsPaused(true)
         return
       }
-      if (screen === 'game' && mapOpen && event.key === 'Escape') {
-        setMapOpen(false)
+      if (key === 'm') {
+        event.preventDefault()
+        setMapOpen(true)
         return
       }
-      if (screen !== 'game' || mapOpen) return
       if (event.key === 'ArrowLeft') {
         event.preventDefault()
         setLocationIndex((index) => (index + LOCATIONS.length - 1) % LOCATIONS.length)
@@ -134,7 +155,7 @@ export function CctvPatrolGame() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [screen, mapOpen, play])
+  }, [screen, mapOpen, isPaused, play])
 
   const handleStart = useCallback(() => {
     saveResultRef.current = false
@@ -144,6 +165,7 @@ export function CctvPatrolGame() {
     setStudent(null)
     setCatchBanner(null)
     setNoiseEnabled(false)
+    setIsPaused(false)
     play('camera')
     setScreen('map')
   }, [play])
@@ -163,17 +185,19 @@ export function CctvPatrolGame() {
   }, [play])
 
   const handleCatch = useCallback((target: TruantStudent) => {
+    if (isPaused || mapOpen) return
     setScore((current) => current + 100)
     setCaught((current) => current + 1)
     setStudent((current) => current?.id === target.id ? null : current)
     setCatchBanner({ id: target.id, x: target.x, y: target.y })
     play('catch')
     window.setTimeout(() => setCatchBanner((current) => current?.id === target.id ? null : current), 800)
-  }, [play])
+  }, [play, isPaused, mapOpen])
 
   const returnToLobby = useCallback(() => {
     setScreen('lobby')
     setMapOpen(false)
+    setIsPaused(false)
     setStudent(null)
     setCatchBanner(null)
   }, [])
@@ -224,12 +248,12 @@ export function CctvPatrolGame() {
         <div className="game-live-title"><div className="brand-symbol game-brand-symbol"><Camera aria-hidden="true" /></div><div><span className="eyebrow">UNIT CCTV / LANGSUNG</span><strong>CAM {location.camera} <i /> {location.name}</strong></div><span className="live-pill"><span className="rec-dot" /> REC</span></div>
         <div className="game-stats-top">
           <div className="top-stat score-stat"><span>SKOR</span><strong>{String(score).padStart(4, '0')}</strong><small>PTS</small></div>
-          <div className={`timer-stat ${timeLeft <= 30 ? 'timer-urgent' : ''}`}><span><Clock3 aria-hidden="true" /> SISA WAKTU</span><strong>{formatTime(timeLeft)}</strong></div>
+          <div className={`timer-stat ${isPaused ? 'timer-paused' : timeLeft <= 30 ? 'timer-urgent' : ''}`}><span><Clock3 aria-hidden="true" /> {isPaused ? 'JEDA' : 'SISA WAKTU'}</span><strong>{formatTime(timeLeft)}</strong></div>
         </div>
       </header>
 
       <section className="surveillance-panel panel-frame" aria-label="Pemantauan kamera CCTV">
-        <div className="surveillance-toolbar"><span><span className="signal-bars"><i /><i /><i /></span> MONITORING AKTIF <i className="toolbar-divider" /> PETUGAS: {playerName.trim().toUpperCase()}</span><span className="toolbar-right"><button className="noise-toggle" onClick={() => setNoiseEnabled((enabled) => !enabled)} aria-pressed={noiseEnabled} title={noiseEnabled ? 'Matikan noise' : 'Nyalakan noise'}>{noiseEnabled ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}<span>NOISE {noiseEnabled ? 'ON' : 'OFF'}</span></button><span className="privacy-label"><Crosshair aria-hidden="true" /> 2× DIGITAL</span></span></div>
+        <div className="surveillance-toolbar"><span><span className="signal-bars"><i /><i /><i /></span> MONITORING AKTIF <i className="toolbar-divider" /> PETUGAS: {playerName.trim().toUpperCase()}</span><span className="toolbar-right"><button className="pause-toggle" onClick={() => setIsPaused(true)} aria-label="Jeda patroli"><Pause aria-hidden="true" /><span>JEDA</span><kbd>P</kbd></button><button className="noise-toggle" onClick={() => setNoiseEnabled((enabled) => !enabled)} aria-pressed={noiseEnabled} title={noiseEnabled ? 'Matikan noise' : 'Nyalakan noise'}>{noiseEnabled ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}<span>NOISE {noiseEnabled ? 'ON' : 'OFF'}</span></button><span className="privacy-label"><Crosshair aria-hidden="true" /> 2× DIGITAL</span></span></div>
         <div className="camera-layout">
           <button className="feed-arrow feed-arrow-left" onClick={() => switchCamera(-1)} aria-label="Kamera sebelumnya"><ArrowLeft aria-hidden="true" /><span>SEBELUMNYA</span></button>
           <CctvFeed location={location} playerName={playerName.trim()} student={student} catchBanner={catchBanner} captured={Boolean(catchBanner)} noiseEnabled={noiseEnabled} onCatch={handleCatch} />
@@ -238,10 +262,11 @@ export function CctvPatrolGame() {
         <div className="surveillance-footer"><span><MapPin aria-hidden="true" /> TITIK {location.camera} <b>/</b> {location.shortName}</span><span><span className="status-dot" /> <span className="detect-label">SISTEM DETEKSI AKTIF</span></span><span><Radio aria-hidden="true" /> {caught} SISWA DIAMANKAN</span></div>
       </section>
 
-      <footer className="game-footer"><span><kbd>←</kbd><kbd>→</kbd> PINDAH KAMERA</span><span>KLIK SISWA UNTUK MENANGKAP</span><span><kbd>M</kbd> BUKA PETA</span></footer>
+      <footer className="game-footer"><span><kbd>←</kbd><kbd>→</kbd> PINDAH KAMERA</span><span>KLIK SISWA UNTUK MENANGKAP</span><span><kbd>P</kbd> JEDA RONDA</span><span><kbd>M</kbd> BUKA PETA</span></footer>
 
       <AnimatePresence>
         {mapOpen ? <CampusMap isOverlay onClose={() => setMapOpen(false)} onSelect={handleSelectLocation} /> : null}
+        {isPaused ? <PauseOverlay onResume={() => setIsPaused(false)} onOpenMap={() => { setIsPaused(false); setMapOpen(true) }} /> : null}
       </AnimatePresence>
     </main>
   )
