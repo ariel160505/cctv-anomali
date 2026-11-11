@@ -8,9 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Layers,
   Radio,
-  Sparkles,
   XCircle,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -75,16 +73,15 @@ export function CctvFeed({
     return () => window.clearInterval(interval)
   }, [])
 
-  // CCTV Glitch effect when changing cameras or when anomaly changes
+  // CCTV Glitch effect when changing cameras or anomaly state
   useEffect(() => {
     setIsGlitching(true)
     const t = window.setTimeout(() => setIsGlitching(false), 220)
     return () => window.clearTimeout(t)
   }, [location.id, activeAnomaly?.anomaly.id])
 
-  // Handle click on feed to open report menu at coordinates
+  // Click on CCTV stage to trigger report at clicked point
   const handleStageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Prevent if clicking on buttons or modal
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('.report-dialog-box')) {
       return
     }
@@ -130,7 +127,7 @@ export function CctvFeed({
           y,
           success: false,
           title: 'LAPORAN GAGAL!',
-          sub: 'Titik / jenis anomali tidak sesuai',
+          sub: 'Jenis anomali / lokasi tidak sesuai',
         },
       ])
     }
@@ -164,46 +161,40 @@ export function CctvFeed({
         />
       </div>
 
-      {/* CCTV Overlays: Scanlines & Vignette */}
+      {/* Subtle CCTV Overlays: Scanlines & Vignette */}
       <div className="modern-cctv-scanlines" />
       <div className="modern-cctv-vignette" />
 
       {/* Top Left Stamp */}
-      <div className="modern-cctv-stamp">
-        <div className="stamp-primary">
-          <span className="stamp-cam">CAM-{location.camera}</span>
-          <span className="stamp-divider">•</span>
-          <span className="stamp-time">{clock}</span>
-          <span className="stamp-divider">•</span>
-          <span className="stamp-loc">{location.name}</span>
-        </div>
-        <div className="stamp-sub">
-          <span>PETUGAS: {playerName || 'GURU PIKET'}</span>
-          <span className="stamp-divider">•</span>
-          <span className="stamp-fps">30 FPS</span>
+      <div className="cctv-top-stamp">
+        <div className="cctv-stamp-badge">CAM-{location.camera}</div>
+        <div className="cctv-stamp-text">
+          <span className="cctv-stamp-clock">{clock}</span>
+          <span className="cctv-stamp-sep">•</span>
+          <span className="cctv-stamp-loc">{location.name}</span>
         </div>
       </div>
 
-      {/* Top Right Live & Status */}
-      <div className="modern-cctv-status-badge">
-        <div className="live-pill">
-          <span className="rec-dot" />
-          <span className="rec-label">REC</span>
+      {/* Top Right Live & REC indicator */}
+      <div className="cctv-top-status">
+        <div className="cctv-rec-pill">
+          <span className="cctv-rec-blink" />
+          <span>REC</span>
         </div>
-        <div className="room-name-pill">
+        <div className="cctv-room-pill">
           <Eye className="w-3.5 h-3.5 text-emerald-400" />
           <span>{location.shortName}</span>
         </div>
       </div>
 
-      {/* Floating Interactive Report Dialog at Click Position */}
+      {/* Interactive Floating Report Dialog at Click Position */}
       <AnimatePresence>
         {reportModal?.open && (
           <motion.div
             className="report-dialog-box"
             style={{
-              left: `${Math.min(Math.max(reportModal.x, 22), 78)}%`,
-              top: `${Math.min(Math.max(reportModal.y, 24), 76)}%`,
+              left: `${Math.min(Math.max(reportModal.x, 24), 76)}%`,
+              top: `${Math.min(Math.max(reportModal.y, 24), 74)}%`,
             }}
             initial={{ opacity: 0, scale: 0.85, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -255,9 +246,9 @@ export function CctvFeed({
             transition={{ duration: 0.35 }}
           >
             {f.success ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+              <CheckCircle2 className="w-5 h-5 text-emerald-300 flex-shrink-0" />
             ) : (
-              <XCircle className="w-5 h-5 text-rose-300" />
+              <XCircle className="w-5 h-5 text-rose-300 flex-shrink-0" />
             )}
             <div>
               <div className="feedback-title">{f.title}</div>
@@ -267,34 +258,32 @@ export function CctvFeed({
         ))}
       </AnimatePresence>
 
-      {/* Left / Right Camera Switch Buttons */}
+      {/* Left / Right Floating Camera Switch Arrows */}
       <button
         type="button"
-        className="modern-cctv-nav-btn nav-btn-left"
+        className="cctv-floating-arrow arrow-left"
         onClick={(e) => {
           e.stopPropagation()
           onPrevCamera()
         }}
         title="Kamera Sebelumnya (Panah Kiri / A)"
       >
-        <ChevronLeft className="w-6 h-6" />
-        <span className="nav-btn-text">SEBELUMNYA</span>
+        <ChevronLeft className="w-7 h-7" />
       </button>
 
       <button
         type="button"
-        className="modern-cctv-nav-btn nav-btn-right"
+        className="cctv-floating-arrow arrow-right"
         onClick={(e) => {
           e.stopPropagation()
           onNextCamera()
         }}
         title="Kamera Berikutnya (Panah Kanan / D)"
       >
-        <span className="nav-btn-text">BERIKUTNYA</span>
-        <ChevronRight className="w-6 h-6" />
+        <ChevronRight className="w-7 h-7" />
       </button>
 
-      {/* Bottom Center Prompt Bar */}
+      {/* Bottom Center Report Prompt Button */}
       <div className="modern-cctv-bottom-bar">
         <button
           type="button"
@@ -305,7 +294,7 @@ export function CctvFeed({
           }}
         >
           <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-          <span>KLIK DI GAMBAR ATAU KLIK DISINI UNTUK LAPORKAN ANOMALI</span>
+          <span>KLIK KEJADIAN DI GAMBAR ATAU KLIK DISINI</span>
         </button>
       </div>
     </div>

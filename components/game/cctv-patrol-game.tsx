@@ -99,10 +99,8 @@ export function CctvPatrolGame() {
 
     const spawnAnomaly = () => {
       setActiveAnomalies((curr) => {
-        // Limit max active anomalies at once to 4
         if (curr.length >= 4) return curr
 
-        // Find locations without an active anomaly
         const occupiedLocIds = new Set(curr.map((a) => a.locationId))
         const eligibleLocations = LOCATIONS.filter(
           (loc) => !occupiedLocIds.has(loc.id) && loc.anomalies.length > 0
@@ -110,7 +108,6 @@ export function CctvPatrolGame() {
 
         if (eligibleLocations.length === 0) return curr
 
-        // Pick random location and random anomaly
         const targetLoc = eligibleLocations[Math.floor(Math.random() * eligibleLocations.length)]
         const randomAnom = targetLoc.anomalies[Math.floor(Math.random() * targetLoc.anomalies.length)]
 
@@ -126,11 +123,7 @@ export function CctvPatrolGame() {
       })
     }
 
-    // Spawn first anomaly after 5 seconds, then every 16-24 seconds
-    const intervalTime = 16000 + Math.random() * 8000
-    const timer = window.setInterval(spawnAnomaly, intervalTime)
-    
-    // First spawn quick start
+    const timer = window.setInterval(spawnAnomaly, 18000)
     const initialTimer = window.setTimeout(spawnAnomaly, 4000)
 
     return () => {
@@ -139,7 +132,7 @@ export function CctvPatrolGame() {
     }
   }, [screen, mapOpen])
 
-  // Audio cues on critical threat
+  // Audio cue when threat reaches critical
   useEffect(() => {
     if (screen === 'game' && activeAnomalies.length >= 3) {
       play('siren')
@@ -228,7 +221,6 @@ export function CctvPatrolGame() {
   // Anomaly Verification Handler
   const handleReportAnomaly = useCallback(
     (type: AnomalyType, clickX: number, clickY: number): boolean => {
-      // Find active anomaly in current room
       const matchIndex = activeAnomalies.findIndex((a) => a.locationId === location.id)
       if (matchIndex === -1) {
         play('buzzer')
@@ -238,13 +230,11 @@ export function CctvPatrolGame() {
       const currentTarget = activeAnomalies[matchIndex]
       const anom = currentTarget.anomaly
 
-      // Verify Category Match
       if (anom.type !== type) {
         play('buzzer')
         return false
       }
 
-      // Check distance from click to anomaly center with tolerance (within 24% radius or within bounding box)
       const dist = Math.hypot(clickX - anom.x, clickY - anom.y)
       const inBox =
         clickX >= anom.x - anom.w &&
@@ -257,7 +247,7 @@ export function CctvPatrolGame() {
         return false
       }
 
-      // MATCH VERIFIED!
+      // SUCCESS VERIFIED
       play('verified')
       setActiveAnomalies((curr) => curr.filter((_, idx) => idx !== matchIndex))
       setScore((prev) => prev + 150)
@@ -281,7 +271,6 @@ export function CctvPatrolGame() {
     play('camera')
   }
 
-  // Active Anomaly in current room (if any)
   const currentRoomAnomaly = activeAnomalies.find((a) => a.locationId === location.id) || null
 
   return (
@@ -299,19 +288,19 @@ export function CctvPatrolGame() {
         <main className="modern-cctv-workspace">
           {/* Top Surveillance Control Bar */}
           <header className="modern-cctv-header">
-            {/* Left: Map Button */}
+            {/* Left: Map Button & Status */}
             <div className="header-left-group">
               <button
                 type="button"
-                className="header-action-btn"
+                className="hud-map-btn"
                 onClick={() => {
                   setMapOpen(true)
                   play('beep')
                 }}
-                title="Buka Peta Sekolah (M)"
+                title="Buka Peta Kampus (M)"
               >
                 <Map className="w-4 h-4 text-emerald-400" />
-                <span className="btn-label">PETA KAMPUS (M)</span>
+                <span>PETA (M)</span>
               </button>
 
               {/* Status Threat Indicator */}
@@ -326,18 +315,18 @@ export function CctvPatrolGame() {
               >
                 {activeAnomalies.length >= 3 ? (
                   <>
-                    <ShieldAlert className="w-4 h-4 text-rose-400 animate-bounce" />
-                    <span>STATUS: KRITIS ({activeAnomalies.length} ANOMALI)</span>
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-400 animate-bounce" />
+                    <span>KRITIS ({activeAnomalies.length})</span>
                   </>
                 ) : activeAnomalies.length > 0 ? (
                   <>
-                    <AlertTriangle className="w-4 h-4 text-amber-400" />
-                    <span>STATUS: WASPADA ({activeAnomalies.length} AKTIF)</span>
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>WASPADA ({activeAnomalies.length})</span>
                   </>
                 ) : (
                   <>
-                    <Shield className="w-4 h-4 text-emerald-400" />
-                    <span>STATUS: AMAN</span>
+                    <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>AMAN</span>
                   </>
                 )}
               </div>
@@ -367,22 +356,22 @@ export function CctvPatrolGame() {
               </button>
             </div>
 
-            {/* Right: Timer & Score */}
+            {/* Right: Clock & Score */}
             <div className="header-right-group">
-              <div className="stat-pill-clock">
+              <div className="hud-timer-badge">
                 <Clock className="w-4 h-4 text-emerald-400" />
-                <span className="stat-value-clock">{formatTime(timeLeft)}</span>
+                <span className="hud-timer-num">{formatTime(timeLeft)}</span>
               </div>
-              <div className="stat-pill-score">
+              <div className="hud-score-badge">
                 <Trophy className="w-4 h-4 text-amber-300" />
-                <span className="stat-value-score">{score}</span>
-                <span className="stat-label">PTS</span>
+                <span className="hud-stat-num">{score}</span>
+                <span className="hud-stat-label">PTS</span>
               </div>
             </div>
           </header>
 
           {/* Central Surveillance Feed */}
-          <section className="modern-cctv-body">
+          <section className="modern-monitor-container">
             <CctvFeed
               location={location}
               playerName={playerName}
