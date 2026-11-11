@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { ArrowLeft, ArrowUpRight, Camera, CheckCircle2, Crosshair, MapPin, X } from 'lucide-react'
+import { ArrowLeft, Check, Crosshair, MapPin, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { LOCATIONS, type CampusLocation } from '@/lib/game-data'
 
@@ -12,118 +12,109 @@ type CampusMapProps = {
   currentLocationId?: string
 }
 
-export function CampusMap({ onSelect, onClose, isOverlay = false, currentLocationId }: CampusMapProps) {
+export function CampusMap({
+  onSelect,
+  onClose,
+  isOverlay = false,
+  currentLocationId,
+}: CampusMapProps) {
   return (
     <motion.main
-      className={`map-screen ${isOverlay ? 'map-screen-overlay' : ''}`}
+      className={`clean-map-screen ${isOverlay ? 'clean-map-overlay' : ''}`}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.22, ease: 'easeOut' }}
-      aria-labelledby="map-title"
+      transition={{ duration: 0.2 }}
     >
-      <div className="map-topline">
-        <div className="map-top-copy">
-          {isOverlay && onClose ? (
-            <button className="icon-button map-back-button" onClick={onClose} aria-label="Tutup peta">
-              <ArrowLeft aria-hidden="true" />
+      {/* Top Header */}
+      <header className="clean-map-header">
+        <div className="clean-map-title-group">
+          {isOverlay && onClose && (
+            <button
+              onClick={onClose}
+              className="clean-map-btn-back"
+              title="Kembali ke CCTV (ESC)"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>KEMBALI KE CCTV</span>
             </button>
-          ) : null}
-          <span className="eyebrow">
-            <Crosshair aria-hidden="true" /> DENAH AREA SEKOLAH
-          </span>
-          <h1 id="map-title">Pilih Titik Pantau CCTV</h1>
-          <p>Klik salah satu pin nomor (1 - 7) di peta atau pilih dari daftar lokasi.</p>
-        </div>
-        <div className="map-live-tag">
-          <span className="status-dot" /> 7 TITIK CCTV ONLINE
-        </div>
-        {isOverlay && onClose ? (
-          <button className="icon-button map-close-button" onClick={onClose} aria-label="Tutup peta">
-            <X aria-hidden="true" />
-          </button>
-        ) : null}
-      </div>
-
-      <div className="map-content">
-        {/* Interactive Map Board with real MAP GAME.jpg */}
-        <section className="map-board" aria-label="Peta interaktif sekolah">
-          <div className="map-image-wrapper">
-            <Image
-              src="/images/school/map.jpg"
-              alt="Peta Interaktif Sekolah untuk Mencari Pembolos"
-              fill
-              priority
-              sizes="(max-width: 900px) 100vw, 75vw"
-              className="campus-map-image object-contain"
-            />
+          )}
+          <div>
+            <h1 className="clean-map-h1">🗺️ PILIH LOKASI PATROLI</h1>
+            <p className="clean-map-p">
+              Klik salah satu pin atau nama tempat di bawah untuk langsung memantau CCTV-nya.
+            </p>
           </div>
+        </div>
 
-          {/* Interactive Clickable Pins overlaying the 7 locations */}
+        {isOverlay && onClose && (
+          <button onClick={onClose} className="clean-map-btn-close" aria-label="Tutup Peta">
+            <X className="w-6 h-6" />
+          </button>
+        )}
+      </header>
+
+      {/* Main Map Canvas */}
+      <div className="clean-map-canvas-wrapper">
+        <div className="clean-map-canvas">
+          {/* Real Clean Map V2 Background */}
+          <Image
+            src="/images/school/map.jpg"
+            alt="Denah Sekolah Bersih V2"
+            fill
+            priority
+            sizes="(max-width: 1200px) 100vw, 85vw"
+            className="clean-map-img"
+          />
+
+          {/* Interactive Pins with Number & Location Name underneath */}
           {LOCATIONS.map((loc) => {
             const isCurrent = loc.id === currentLocationId
             return (
               <button
-                type="button"
                 key={loc.id}
-                className={`map-hotspot-pin ${isCurrent ? 'map-hotspot-current' : ''}`}
+                type="button"
+                className={`clean-map-pin-btn ${isCurrent ? 'pin-is-current' : ''}`}
                 style={{ left: `${loc.mapX}%`, top: `${loc.mapY}%` }}
                 onClick={() => onSelect(loc)}
-                aria-label={`Pilih kamera ${loc.pinNumber}: ${loc.name}`}
+                title={`Pilih ${loc.shortName}`}
               >
-                {/* Pulse wave ring */}
-                <span className="pin-pulse-wave" />
+                {/* Pulsing ring wave */}
+                <span className="clean-pin-pulse" />
 
-                {/* Pin Circle with Number matching the map */}
-                <span className="pin-marker-badge">
-                  <span className="pin-number">{loc.pinNumber}</span>
-                </span>
+                {/* Numbered Pin Head */}
+                <div className="clean-pin-badge">
+                  <span>{loc.pinNumber}</span>
+                </div>
 
-                {/* Floating Tooltip */}
-                <span className="map-pin-tooltip">
-                  <span className="tooltip-cam">CCTV {loc.camera}</span>
-                  <strong>{loc.name}</strong>
-                  <small>{loc.description}</small>
-                </span>
+                {/* Permanent Location Name Label underneath the pin */}
+                <div className="clean-pin-label">
+                  <span className="pin-label-text">
+                    {loc.pinNumber}. {loc.shortName}
+                  </span>
+                  {isCurrent && <span className="pin-current-tag">AKTIF</span>}
+                </div>
               </button>
             )
           })}
-        </section>
-
-        {/* Location List Panel */}
-        <aside className="location-list" aria-label="Daftar lokasi CCTV">
-          <div className="location-list-heading">
-            <span className="eyebrow">DAFTAR TITIK KAMERA</span>
-            <span className="camera-count">07 TITIK</span>
-          </div>
-          <div className="location-list-items">
-            {LOCATIONS.map((loc) => {
-              const isCurrent = loc.id === currentLocationId
-              return (
-                <button
-                  key={loc.id}
-                  className={`location-row ${isCurrent ? 'location-row-active' : ''}`}
-                  onClick={() => onSelect(loc)}
-                >
-                  <span className="location-row-id">
-                    {loc.pinNumber}
-                  </span>
-                  <span className="location-row-copy">
-                    <strong>{loc.name}</strong>
-                    <small>{loc.description}</small>
-                  </span>
-                  {isCurrent ? (
-                    <CheckCircle2 className="location-row-check" aria-hidden="true" />
-                  ) : (
-                    <ArrowUpRight className="location-row-arrow" aria-hidden="true" />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-          <p className="map-hint">💡 Klik kamera mana saja untuk langsung memantau area tersebut.</p>
-        </aside>
+        </div>
       </div>
+
+      {/* Bottom Quick Bar */}
+      <footer className="clean-map-footer">
+        <div className="clean-map-pills">
+          {LOCATIONS.map((loc) => (
+            <button
+              key={loc.id}
+              onClick={() => onSelect(loc)}
+              className={`map-pill-item ${loc.id === currentLocationId ? 'pill-active' : ''}`}
+            >
+              <span className="pill-num">{loc.pinNumber}</span>
+              <span>{loc.shortName}</span>
+            </button>
+          ))}
+        </div>
+      </footer>
     </motion.main>
   )
 }
