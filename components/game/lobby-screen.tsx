@@ -1,7 +1,18 @@
 'use client'
 
 import { FormEvent, useState } from 'react'
-import { ArrowDownRight, ArrowRight, AudioLines, BadgeCheck, Camera, Radio, ShieldCheck, Sparkles, Trophy } from 'lucide-react'
+import {
+  ArrowDownRight,
+  ArrowRight,
+  Camera,
+  CheckCircle2,
+  Eye,
+  Radio,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Trophy,
+} from 'lucide-react'
 import { motion } from 'motion/react'
 import type { LeaderboardEntry } from '@/lib/game-data'
 import { PatrolMascot } from './mascot'
@@ -13,15 +24,18 @@ type LobbyScreenProps = {
   onStart: () => void
 }
 
-const rankLabels = ['PETUGAS TERBAIK', 'PENGAWAS TELADAN', 'SATPAM SIGAP']
-
-export function LobbyScreen({ leaderboard, playerName, onPlayerNameChange, onStart }: LobbyScreenProps) {
+export function LobbyScreen({
+  leaderboard,
+  playerName,
+  onPlayerNameChange,
+  onStart,
+}: LobbyScreenProps) {
   const [nameError, setNameError] = useState('')
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!playerName.trim()) {
-      setNameError('Isi nama petugas sebelum mulai ronda.')
+      setNameError('Ketik nama kamu sebelum mulai ronda.')
       return
     }
     if (playerName.trim().length < 2) {
@@ -34,32 +48,66 @@ export function LobbyScreen({ leaderboard, playerName, onPlayerNameChange, onSta
 
   return (
     <main className="lobby-shell">
+      {/* Brand Header */}
       <header className="brand-row">
         <div className="brand-lockup">
-          <div className="brand-symbol"><Camera aria-hidden="true" /></div>
+          <div className="brand-symbol">
+            <Camera aria-hidden="true" />
+          </div>
           <div>
-            <p className="brand-name">CCTV<span>://</span>PATROL</p>
-            <p className="brand-subtitle">UNIT KEAMANAN SEKOLAH NUSANTARA</p>
+            <p className="brand-name">
+              CCTV<span>://</span>PATROL
+            </p>
+            <p className="brand-subtitle">OPERASI RAZIA PEMBOLOS SEKOLAH</p>
           </div>
         </div>
-        <div className="system-status"><span className="status-dot" /> SEMUA SISTEM NORMAL <span className="status-divider" /> SHIFT MALAM <Radio aria-hidden="true" /></div>
+        <div className="system-status">
+          <span className="status-dot" /> 7 TITIK CCTV AKTIF{' '}
+          <span className="status-divider" /> GAME KETELITIAN MATA <Radio aria-hidden="true" />
+        </div>
       </header>
 
+      {/* Main Lobby Grid */}
       <section className="lobby-grid">
+        {/* Left Hero Panel */}
         <motion.div
           className="hero-panel panel-frame"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <div className="hero-topline"><span><span className="signal-bars"><i /><i /><i /></span> LIVE FEED: STANDBY</span><span>REC <span className="rec-dot" /></span></div>
+          <div className="hero-topline">
+            <span>
+              <span className="signal-bars">
+                <i />
+                <i />
+                <i />
+              </span>{' '}
+              CCTV SURVEILLANCE SYSTEM
+            </span>
+            <span>
+              REC <span className="rec-dot" />
+            </span>
+          </div>
           <div className="hero-grid-lines" aria-hidden="true" />
+
+          {/* Copy & Play Form */}
           <div className="hero-copy">
-            <span className="eyebrow"><ShieldCheck aria-hidden="true" /> SIMULASI KEAMANAN SEKOLAH</span>
-            <h1>Yang bolos,<br /><em>ketahuan.</em></h1>
-            <p className="hero-lede">Tujuh kamera. Satu sekolah. Jangan biarkan satu pun pembolos lolos dari pantauanmu.</p>
+            <span className="eyebrow">
+              <Eye aria-hidden="true" /> GAME UJI KETELITIAN CCTV
+            </span>
+            <h1>
+              Yang bolos,<br />
+              <em>pasti ketahuan!</em>
+            </h1>
+            <p className="hero-lede">
+              Anak-anak pembolos bersembunyi dan menyamar di kantin, parkiran, kebun, hingga koridor kelas. Pasang matamu baik-baik dan tangkap mereka sebelum bel berbunyi!
+            </p>
+
             <form className="start-form" onSubmit={handleSubmit} noValidate>
-              <label htmlFor="player-name">NAMA PEMAIN <span>/ GURU PIKET</span></label>
+              <label htmlFor="player-name">
+                NAMA PETUGAS <span>/ GURU PIKET</span>
+              </label>
               <div className={`name-input-wrap ${nameError ? 'name-input-error' : ''}`}>
                 <input
                   id="player-name"
@@ -69,73 +117,136 @@ export function LobbyScreen({ leaderboard, playerName, onPlayerNameChange, onSta
                     onPlayerNameChange(event.target.value.slice(0, 24))
                     if (nameError) setNameError('')
                   }}
-                  placeholder="Contoh: Bu Rina"
+                  placeholder="Contoh: Pak Bambang / Bu Rina"
                   autoComplete="nickname"
                   maxLength={24}
                   aria-invalid={Boolean(nameError)}
-                  aria-describedby={nameError ? 'name-error' : 'name-hint'}
                 />
                 <span className="input-counter">{playerName.length}/24</span>
               </div>
-              {nameError ? <p className="form-error" id="name-error" role="alert">{nameError}</p> : <p className="input-hint" id="name-hint">Nama ini akan muncul di papan skor tertinggi.</p>}
+              {nameError ? (
+                <p className="form-error" role="alert">
+                  {nameError}
+                </p>
+              ) : (
+                <p className="input-hint">Ketik namamu lalu klik Mulai Ronda untuk memilih titik di peta.</p>
+              )}
+
               <button className="start-button" type="submit">
-                <span className="start-icon"><ArrowRight aria-hidden="true" /></span>
-                <span>MULAI RONDA<small>SIAPKAN SENTER &amp; INSTING</small></span>
+                <span className="start-icon">
+                  <ArrowRight aria-hidden="true" />
+                </span>
+                <span>
+                  MULAI RONDA
+                  <small>BUKA PETA &amp; TANGKAP PEMBOLOS</small>
+                </span>
                 <ArrowDownRight className="start-trail" aria-hidden="true" />
               </button>
             </form>
           </div>
+
+          {/* Truant Mascot Stage (Karakter Sombong Tangan Berpangku) */}
           <div className="mascot-stage">
             <div className="mascot-orbit orbit-one" />
             <div className="mascot-orbit orbit-two" />
-            <div className="mascot-stage-label"><Sparkles aria-hidden="true" /> PENJAGA GAWAT DARURAT</div>
+            <div className="mascot-stage-label">
+              <Sparkles aria-hidden="true" /> TARGET UTAMA
+            </div>
             <PatrolMascot />
-            <div className="mascot-nameplate"><span>PAK SATPAM</span><b>LEVEL 01</b></div>
+            <div className="mascot-nameplate">
+              <span>SI RAJA BOLOS</span>
+              <b>BURON NO. 1</b>
+            </div>
           </div>
-          <div className="hero-footer"><span><AudioLines aria-hidden="true" /> AUDIO AKTIF</span><span>07.00 PM — 10.00 PM</span><span>V. 1.07.04</span></div>
+
+          <div className="hero-footer">
+            <span>
+              <Search aria-hidden="true" /> FOKUS &amp; KETELITIAN MATA
+            </span>
+            <span>DURASI RONDA: 3 MENIT</span>
+            <span>VERSI RESMI</span>
+          </div>
         </motion.div>
 
+        {/* Right Aside Column */}
         <motion.aside
           className="side-column"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.12, ease: 'easeOut' }}
+          transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
         >
+          {/* Top 3 High Scores */}
           <section className="leaderboard-panel panel-frame" aria-labelledby="leaderboard-title">
             <div className="section-heading">
-              <div className="heading-icon"><Trophy aria-hidden="true" /></div>
-              <div><span className="eyebrow">HALL OF FAME</span><h2 id="leaderboard-title">Top 3 skor tertinggi</h2></div>
-              <BadgeCheck className="heading-mark" aria-hidden="true" />
+              <div className="heading-icon">
+                <Trophy aria-hidden="true" />
+              </div>
+              <div>
+                <span className="eyebrow">HALL OF FAME</span>
+                <h2 id="leaderboard-title">Top 3 Skor Tertinggi</h2>
+              </div>
             </div>
             <ol className="leaderboard-list">
               {leaderboard.slice(0, 3).map((entry, index) => (
-                <li className={`leaderboard-row leaderboard-row-${index + 1}`} key={`${entry.name}-${index}`}>
+                <li
+                  className={`leaderboard-row leaderboard-row-${index + 1}`}
+                  key={`${entry.name}-${index}`}
+                >
                   <span className="leader-rank">{String(index + 1).padStart(2, '0')}</span>
-                  <span className="leader-avatar">{entry.name.trim().charAt(0).toUpperCase() || 'P'}</span>
+                  <span className="leader-avatar">
+                    {entry.name.trim().charAt(0).toUpperCase() || 'P'}
+                  </span>
                   <span className="leader-name">{entry.name}</span>
-                  <span className="leader-score">{entry.score.toLocaleString('id-ID')}<small>PTS</small></span>
+                  <span className="leader-score">
+                    {entry.score.toLocaleString('id-ID')}
+                    <small>PTS</small>
+                  </span>
                 </li>
               ))}
             </ol>
-            <div className="leaderboard-foot"><span>REKOR SEPANJANG MASA</span><span><span className="status-dot" /> TERSINKRON</span></div>
-          </section>
-
-          <section className="briefing-panel panel-frame" aria-labelledby="briefing-title">
-            <div className="briefing-header"><span className="eyebrow">BRIEFING PETUGAS</span><span className="briefing-code">MEMO #07-23</span></div>
-            <h2 id="briefing-title">Laporan malam ini.</h2>
-            <p>Sejumlah siswa terdeteksi berkeliaran di luar kelas. Amankan mereka sebelum sempat kabur.</p>
-            <div className="briefing-stats">
-              <div><span>WAKTU RONDA</span><strong>03<span>:00</span></strong></div>
-              <div><span>TIAP TANGKAPAN</span><strong>+100<small> PTS</small></strong></div>
-              <div><span>AREA PANTAU</span><strong>07<small> TITIK</small></strong></div>
+            <div className="leaderboard-foot">
+              <span>REKOR GURU PIKET TERBAIK</span>
+              <span>
+                <span className="status-dot" /> TERSIMPAN
+              </span>
             </div>
-            <div className="briefing-note"><span className="note-dot" /><span>Ketuk siswa yang muncul di kamera untuk menangkapnya.</span></div>
           </section>
 
-          <div className="safety-note"><ShieldCheck aria-hidden="true" /><span>SIMULASI EDUKATIF <i /> TIDAK ADA SISWA YANG DIRUGIKAN</span></div>
+          {/* Quick How to Play Briefing */}
+          <section className="briefing-panel panel-frame" aria-labelledby="briefing-title">
+            <div className="briefing-header">
+              <span className="eyebrow">PANDUAN PETUGAS</span>
+              <span className="briefing-code">ATURAN MAIN</span>
+            </div>
+            <h2 id="briefing-title">Cara Menangkap Pembolos</h2>
+            <div className="briefing-steps">
+              <div className="step-item">
+                <span className="step-num">1</span>
+                <p><strong>Pilih Lokasi di Peta</strong>: Buka denah dan pilih salah satu dari 7 titik CCTV.</p>
+              </div>
+              <div className="step-item">
+                <span className="step-num">2</span>
+                <p><strong>Ganti Kamera</strong>: Gunakan tombol panah kiri / kanan (atau tombol keyboard) untuk berpindah kamera.</p>
+              </div>
+              <div className="step-item">
+                <span className="step-num">3</span>
+                <p><strong>Perhatikan Baik-baik</strong>: Anak pembolos menyamar di balik pilar, meja, atau tanaman. Klik anak tersebut untuk mendapatkan <strong>+100 poin</strong>!</p>
+              </div>
+            </div>
+
+            <div className="briefing-note">
+              <CheckCircle2 className="note-icon" aria-hidden="true" />
+              <span>Durasi 3 menit. Temukan sebanyak mungkin pembolos sebelum waktu habis!</span>
+            </div>
+          </section>
         </motion.aside>
       </section>
-      <footer className="page-footer"><span>© 2025 SEKOLAH NUSANTARA — UNIT KEAMANAN DIGITAL</span><span>PERANGKAT KERAS CCTV <b>ONLINE</b></span></footer>
+
+      {/* Page Footer */}
+      <footer className="page-footer">
+        <span>© 2026 SEKOLAH — CCTV PATROL: RAZIA PEMBOLOS</span>
+        <span>SEMUA ASET FOTO SEKOLAH ASLI</span>
+      </footer>
     </main>
   )
 }

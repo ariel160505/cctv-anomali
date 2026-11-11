@@ -2,186 +2,302 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import confetti from 'canvas-confetti'
-import { ArrowLeft, ArrowRight, AudioLines, Camera, Clock3, Crosshair, Map, MapPin, Radio, ShieldCheck, Trophy, Volume2, VolumeX } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Clock3,
+  Crosshair,
+  Layers,
+  Map,
+  MapPin,
+  Radio,
+  RotateCcw,
+  ShieldCheck,
+  Trophy,
+  Volume2,
+  VolumeX,
+} from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { CampusMap } from '@/components/game/campus-map'
-import { CctvFeed, createTruantStudent, type TruantStudent } from '@/components/game/cctv-feed'
+import { CctvFeed, type ActiveStudent } from '@/components/game/cctv-feed'
 import { LobbyScreen } from '@/components/game/lobby-screen'
-import { LOCATIONS, DEFAULT_LEADERBOARD, LEADERBOARD_STORAGE_KEY, formatTime, type CampusLocation, type LeaderboardEntry } from '@/lib/game-data'
+import {
+  LOCATIONS,
+  DEFAULT_LEADERBOARD,
+  LEADERBOARD_STORAGE_KEY,
+  formatTime,
+  type CampusLocation,
+  type LeaderboardEntry,
+} from '@/lib/game-data'
 import { useGameAudio } from '@/hooks/use-game-audio'
 
-const GAME_LENGTH = 180
+const GAME_LENGTH = 180 // 3 minutes = 180 seconds
 
 type Screen = 'lobby' | 'map' | 'game' | 'results'
-type CatchBanner = { id: number; x: number; y: number }
 
 function getRank(score: number) {
-  if (score >= 1000) return { title: 'Guru BK Legendaris', subline: 'Satu sekolah aman berkat kamu.', icon: 'elite' }
-  if (score >= 700) return { title: 'Satpam Teladan', subline: 'Refleks dan patroli yang mantap.', icon: 'pro' }
-  if (score >= 300) return { title: 'Penjaga Kelas', subline: 'Makin dekat jadi legenda sekolah.', icon: 'steady' }
-  return { title: 'Petugas Magang', subline: 'Ronda lagi, tingkatkan instingmu.', icon: 'new' }
+  if (score >= 1200)
+    return {
+      title: 'Guru BK Legendaris',
+      subline: 'Semua sudut sekolah aman dan pembolos kapok total!',
+      icon: 'S+',
+    }
+  if (score >= 800)
+    return {
+      title: 'Satpam Teladan',
+      subline: 'Mata elang, tidak ada satu pun gerak-gerik yang luput.',
+      icon: 'A',
+    }
+  if (score >= 400)
+    return {
+      title: 'Pengawas Sigap',
+      subline: 'Insting ketelitian sudah mulai terasah dengan baik.',
+      icon: 'B',
+    }
+  return {
+    title: 'Petugas Magang',
+    subline: 'Perhatikan detail celah sembunyi lebih teliti lagi!',
+    icon: 'C',
+  }
 }
 
 export function CctvPatrolGame() {
   const [screen, setScreen] = useState<Screen>('lobby')
   const [mapOpen, setMapOpen] = useState(false)
   const [locationIndex, setLocationIndex] = useState(0)
+  const [currentAngleIndex, setCurrentAngleIndex] = useState(0)
   const [playerName, setPlayerName] = useState('')
   const [leaderboard, setLeaderboard] = useState(DEFAULT_LEADERBOARD)
   const [score, setScore] = useState(0)
   const [caught, setCaught] = useState(0)
   const [timeLeft, setTimeLeft] = useState(GAME_LENGTH)
-  const [student, setStudent] = useState<TruantStudent | null>(null)
-  const [catchBanner, setCatchBanner] = useState<CatchBanner | null>(null)
-  const [noiseEnabled, setNoiseEnabled] = useState(false)
+  const [activeStudent, setActiveStudent] = useState<ActiveStudent | null>(null)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+
   const saveResultRef = useRef(false)
-  const nextStudentRef = useRef(0)
+  const studentCounterRef = useRef(0)
   const { play } = useGameAudio()
   const location = LOCATIONS[locationIndex]
   const rank = getRank(score)
 
+  // Load Leaderboard from localStorage
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(LEADERBOARD_STORAGE_KEY)
-      if (!saved) {
-        window.localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(DEFAULT_LEADERBOARD))
-        return
-      }
-      const parsed: unknown = JSON.parse(saved)
-      if (Array.isArray(parsed)) {
-        const validEntries = parsed.filter((item): item is LeaderboardEntry =>
-          typeof item?.name === 'string' && Number.isFinite(item?.score) && item.score >= 0,
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const valid = parsed.filter(
+            (item): item is LeaderboardEntry =>
+              typeof item?.name === 'string' && Number.isFinite(item?.score) && item.score >= 0
+          )
+          if (valid.length) setLeaderboard(valid.slice(0, 3))
+        }
+      } else {
+        window.localStorage.setItem(
+          LEADERBOARD_STORAGE_KEY,
+          JSON.stringify(DEFAULT_LEADERBOARD)
         )
-        if (validEntries.length) setLeaderboard(validEntries.slice(0, 3))
       }
     } catch {
       setLeaderboard(DEFAULT_LEADERBOARD)
     }
   }, [])
 
+  // Timer Countdown (3 Minutes)
   useEffect(() => {
     if (screen !== 'game' || mapOpen) return
     const interval = window.setInterval(() => {
-      setTimeLeft((remaining) => Math.max(remaining - 1, 0))
+      setTimeLeft((prev) => Math.max(prev - 1, 0))
     }, 1000)
     return () => window.clearInterval(interval)
   }, [screen, mapOpen])
 
+  // End Game when timer hits 0
   useEffect(() => {
-    if (screen === 'game' && timeLeft === 0) setScreen('results')
+    if (screen === 'game' && timeLeft === 0) {
+      setScreen('results')
+    }
   }, [screen, timeLeft])
 
+  // Spawn sneaky students across the 7 locations
   useEffect(() => {
-    if (screen !== 'game' || mapOpen || student) return
-    const spawnDelay = 1400 + Math.random() * 1700
-    const spawnTimeout = window.setTimeout(() => {
-      nextStudentRef.current += 1
-      const nextStudent = createTruantStudent(nextStudentRef.current)
-      setStudent(nextStudent)
-      window.setTimeout(() => {
-        setStudent((current) => current?.id === nextStudent.id ? null : current)
-      }, 2500 + Math.random() * 1300)
-    }, spawnDelay)
-    return () => window.clearTimeout(spawnTimeout)
-  }, [screen, mapOpen, locationIndex, student])
+    if (screen !== 'game' || mapOpen) return
 
+    const spawnStudent = () => {
+      // Pick a random location
+      const randomLoc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)]
+      // Pick one of its curated hiding spots
+      const randomSpot =
+        randomLoc.hidingSpots[Math.floor(Math.random() * randomLoc.hidingSpots.length)]
+
+      studentCounterRef.current += 1
+      const student: ActiveStudent = {
+        id: studentCounterRef.current,
+        locationId: randomLoc.id,
+        spot: randomSpot,
+        spawnTime: Date.now(),
+      }
+
+      setActiveStudent(student)
+
+      // Student stays hidden for 7-12 seconds before sneaking to another spot
+      const hideDuration = 7000 + Math.random() * 5000
+      window.setTimeout(() => {
+        setActiveStudent((curr) => (curr?.id === student.id ? null : curr))
+      }, hideDuration)
+    }
+
+    // Initial spawn if none
+    if (!activeStudent) {
+      const initialTimer = window.setTimeout(spawnStudent, 1200)
+      return () => window.clearTimeout(initialTimer)
+    }
+
+    // Periodic check to keep game active
+    const loopInterval = window.setInterval(() => {
+      if (!activeStudent) {
+        spawnStudent()
+      }
+    }, 3000)
+
+    return () => window.clearInterval(loopInterval)
+  }, [screen, mapOpen, activeStudent])
+
+  // Save score and show celebration when game ends
   useEffect(() => {
     if (screen !== 'results' || saveResultRef.current) return
     saveResultRef.current = true
     play('gameOver')
-    const nextBoard = [...leaderboard, { name: playerName.trim() || 'Petugas', score }]
-      .sort((first, second) => second.score - first.score)
+
+    const newEntry: LeaderboardEntry = {
+      name: playerName.trim() || 'Guru Piket',
+      score,
+      date: new Date().toLocaleDateString('id-ID'),
+    }
+
+    const updated = [...leaderboard, newEntry]
+      .sort((a, b) => b.score - a.score)
       .slice(0, 3)
 
-    if (score > 0 && nextBoard.some((entry) => entry.name === (playerName.trim() || 'Petugas') && entry.score === score)) {
-      setLeaderboard(nextBoard)
-      try {
-        window.localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(nextBoard))
-      } catch {
-        // A full or unavailable storage bucket should not interrupt the result screen.
-      }
-      if (score > (leaderboard[2]?.score ?? 0)) {
-        confetti({ particleCount: 110, spread: 72, startVelocity: 32, origin: { y: 0.72 }, colors: ['#c7e88b', '#f2bc67', '#f4eee0', '#81a99b'] })
-      }
+    setLeaderboard(updated)
+    try {
+      window.localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(updated))
+    } catch {
+      // storage unavailable fallback
+    }
+
+    // Celebrate if player made Top 3
+    if (score > 0 && updated.some((e) => e.name === newEntry.name && e.score === score)) {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.65 },
+        colors: ['#c8e58e', '#f3cf8c', '#60a5fa', '#f87171'],
+      })
     }
   }, [screen, leaderboard, playerName, score, play])
 
+  // Keyboard navigation (Arrow keys & 'M' for Map)
   useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'BUTTON'].includes(event.target.tagName)) return
-      if (screen === 'game' && event.key.toLowerCase() === 'm') {
-        event.preventDefault()
-        setMapOpen((isOpen) => !isOpen)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLElement &&
+        ['INPUT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)
+      ) {
         return
       }
-      if (screen === 'game' && mapOpen && event.key === 'Escape') {
-        setMapOpen(false)
-        return
-      }
-      if (screen !== 'game' || mapOpen) return
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault()
-        setLocationIndex((index) => (index + LOCATIONS.length - 1) % LOCATIONS.length)
-        setStudent(null)
-        play('camera')
-      }
-      if (event.key === 'ArrowRight') {
-        event.preventDefault()
-        setLocationIndex((index) => (index + 1) % LOCATIONS.length)
-        setStudent(null)
-        play('camera')
+
+      if (screen === 'game') {
+        if (e.key.toLowerCase() === 'm') {
+          e.preventDefault()
+          setMapOpen((open) => !open)
+          return
+        }
+        if (mapOpen && e.key === 'Escape') {
+          setMapOpen(false)
+          return
+        }
+        if (!mapOpen) {
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault()
+            switchCamera(-1)
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault()
+            switchCamera(1)
+          }
+        }
       }
     }
+
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [screen, mapOpen, play])
+  }, [screen, mapOpen])
 
+  // Game Handlers
   const handleStart = useCallback(() => {
     saveResultRef.current = false
     setScore(0)
     setCaught(0)
     setTimeLeft(GAME_LENGTH)
-    setStudent(null)
-    setCatchBanner(null)
-    setNoiseEnabled(false)
+    setActiveStudent(null)
+    setCurrentAngleIndex(0)
     play('camera')
     setScreen('map')
   }, [play])
 
-  const handleSelectLocation = useCallback((selectedLocation: CampusLocation) => {
-    setLocationIndex(LOCATIONS.findIndex((item) => item.id === selectedLocation.id))
-    setStudent(null)
-    play('camera')
-    setScreen('game')
-    setMapOpen(false)
-  }, [play])
+  const handleSelectLocation = useCallback(
+    (selectedLocation: CampusLocation) => {
+      const idx = LOCATIONS.findIndex((loc) => loc.id === selectedLocation.id)
+      if (idx !== -1) {
+        setLocationIndex(idx)
+        setCurrentAngleIndex(0)
+      }
+      play('camera')
+      setScreen('game')
+      setMapOpen(false)
+    },
+    [play]
+  )
 
-  const switchCamera = useCallback((step: number) => {
-    setLocationIndex((index) => (index + step + LOCATIONS.length) % LOCATIONS.length)
-    setStudent(null)
-    play('camera')
-  }, [play])
+  const switchCamera = useCallback(
+    (delta: number) => {
+      setLocationIndex((curr) => {
+        const next = (curr + delta + LOCATIONS.length) % LOCATIONS.length
+        return next
+      })
+      setCurrentAngleIndex(0)
+      play('camera')
+    },
+    [play]
+  )
 
-  const handleCatch = useCallback((target: TruantStudent) => {
-    setScore((current) => current + 100)
-    setCaught((current) => current + 1)
-    setStudent((current) => current?.id === target.id ? null : current)
-    setCatchBanner({ id: target.id, x: target.x, y: target.y })
-    play('catch')
-    window.setTimeout(() => setCatchBanner((current) => current?.id === target.id ? null : current), 800)
-  }, [play])
+  const handleCatchStudent = useCallback(
+    (student: ActiveStudent) => {
+      setScore((s) => s + 100)
+      setCaught((c) => c + 1)
+      setActiveStudent(null)
+      play('catch')
+    },
+    [play]
+  )
+
+  const handleMissClick = useCallback(
+    (x: number, y: number) => {
+      // gentle click feedback
+      play('beep')
+    },
+    [play]
+  )
 
   const returnToLobby = useCallback(() => {
     setScreen('lobby')
     setMapOpen(false)
-    setStudent(null)
-    setCatchBanner(null)
+    setActiveStudent(null)
   }, [])
 
-  const restart = useCallback(() => {
-    handleStart()
-  }, [handleStart])
-
+  // Screens
   if (screen === 'lobby') {
     return (
       <LobbyScreen
@@ -200,48 +316,215 @@ export function CctvPatrolGame() {
   if (screen === 'results') {
     return (
       <main className="result-shell">
-        <motion.section className="result-card panel-frame" initial={{ opacity: 0, y: 20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.4 }}>
-          <div className="result-overline"><span className="result-icon"><Trophy aria-hidden="true" /></span><span className="eyebrow">LAPORAN RONDA / SELESAI</span></div>
-          <div className="result-copy"><h1>Shift selesai,<br /><em>{playerName.trim() || 'Petugas'}.</em></h1><p>{rank.subline}</p></div>
-          <div className="rank-badge"><ShieldCheck aria-hidden="true" /><span><small>PANGKAT KEAMANAN</small><strong>{rank.title}</strong></span><span className="rank-star">{rank.icon === 'elite' ? 'S+' : rank.icon === 'pro' ? 'A' : rank.icon === 'steady' ? 'B' : 'C'}</span></div>
-          <div className="result-stats">
-            <div><span>TOTAL SKOR</span><strong>{score.toLocaleString('id-ID')}<small>PTS</small></strong></div>
-            <div><span>SISWA DIAMANKAN</span><strong>{caught}<small> ORANG</small></strong></div>
-            <div><span>AREA DIPANTAU</span><strong>{LOCATIONS.length}<small> TITIK</small></strong></div>
+        <motion.section
+          className="result-card panel-frame"
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="result-overline">
+            <span className="result-icon">
+              <Trophy aria-hidden="true" />
+            </span>
+            <span className="eyebrow">LAPORAN RAZIA SELESAI</span>
           </div>
-          <div className="result-note"><span className="status-dot" /><span>{score > (leaderboard[2]?.score ?? 0) ? 'Skor masuk papan peringkat. Kerja bagus, petugas!' : 'Laporan patroli tersimpan. Siap bertugas lagi?'}</span></div>
-          <div className="result-actions"><button className="start-button result-restart" onClick={restart}><span className="start-icon"><Camera aria-hidden="true" /></span><span>MAIN LAGI<small>RONDA BERIKUTNYA</small></span><ArrowRight aria-hidden="true" /></button><button className="secondary-button" onClick={returnToLobby}><ArrowLeft aria-hidden="true" /> MENU UTAMA</button></div>
-          <div className="result-foot"><span><AudioLines aria-hidden="true" /> REKAMAN BERAKHIR</span><span>SEKOLAH NUSANTARA / UNIT 07</span></div>
+
+          <div className="result-copy">
+            <h1>
+              Shift Berakhir,<br />
+              <em>{playerName.trim() || 'Guru Piket'}.</em>
+            </h1>
+            <p>{rank.subline}</p>
+          </div>
+
+          <div className="rank-badge">
+            <ShieldCheck aria-hidden="true" />
+            <span>
+              <small>PREDIKAT KETELITIAN</small>
+              <strong>{rank.title}</strong>
+            </span>
+            <span className="rank-star">{rank.icon}</span>
+          </div>
+
+          <div className="result-stats">
+            <div>
+              <span>TOTAL SKOR</span>
+              <strong>
+                {score.toLocaleString('id-ID')}
+                <small>PTS</small>
+              </strong>
+            </div>
+            <div>
+              <span>PEMBOLOS TERCIDUK</span>
+              <strong>
+                {caught}
+                <small> SISWA</small>
+              </strong>
+            </div>
+            <div>
+              <span>TITIK DIPANTAU</span>
+              <strong>
+                {LOCATIONS.length}
+                <small> LOKASI</small>
+              </strong>
+            </div>
+          </div>
+
+          <div className="result-actions">
+            <button className="start-button result-restart" onClick={handleStart}>
+              <span className="start-icon">
+                <RotateCcw aria-hidden="true" />
+              </span>
+              <span>
+                MAIN LAGI
+                <small>MULAI RONDA BARU</small>
+              </span>
+              <ArrowRight aria-hidden="true" />
+            </button>
+            <button className="secondary-button" onClick={returnToLobby}>
+              <ArrowLeft aria-hidden="true" /> KEMBALI KE MENU UTAMA
+            </button>
+          </div>
         </motion.section>
       </main>
     )
   }
 
+  // Active CCTV Game Screen
   return (
     <main className="game-shell">
+      {/* Game Header Bar */}
       <header className="game-topbar">
-        <button className="map-open-button" onClick={() => setMapOpen(true)}><Map aria-hidden="true" /><span>BUKA PETA</span><kbd>M</kbd></button>
-        <div className="game-live-title"><div className="brand-symbol game-brand-symbol"><Camera aria-hidden="true" /></div><div><span className="eyebrow">UNIT CCTV / LANGSUNG</span><strong>CAM {location.camera} <i /> {location.name}</strong></div><span className="live-pill"><span className="rec-dot" /> REC</span></div>
+        {/* Top-Left: MAP Button */}
+        <button
+          className="map-open-button"
+          onClick={() => setMapOpen(true)}
+          title="Buka Denah Peta (Tekan M)"
+        >
+          <Map aria-hidden="true" />
+          <span>BUKA PETA</span>
+          <kbd>M</kbd>
+        </button>
+
+        {/* Center: Live Camera Status */}
+        <div className="game-live-title">
+          <div className="brand-symbol game-brand-symbol">
+            <Camera aria-hidden="true" />
+          </div>
+          <div>
+            <span className="eyebrow">KAMERA PENGAWAS</span>
+            <strong>
+              CAM {location.camera} • {location.name}
+            </strong>
+          </div>
+          <span className="live-pill">
+            <span className="rec-dot" /> LIVE
+          </span>
+        </div>
+
+        {/* Top-Right: Score & 3-Minute Timer */}
         <div className="game-stats-top">
-          <div className="top-stat score-stat"><span>SKOR</span><strong>{String(score).padStart(4, '0')}</strong><small>PTS</small></div>
-          <div className={`timer-stat ${timeLeft <= 30 ? 'timer-urgent' : ''}`}><span><Clock3 aria-hidden="true" /> SISA WAKTU</span><strong>{formatTime(timeLeft)}</strong></div>
+          <div className="top-stat score-stat">
+            <span>SKOR</span>
+            <strong>{String(score).padStart(4, '0')}</strong>
+            <small>PTS</small>
+          </div>
+          <div className={`timer-stat ${timeLeft <= 30 ? 'timer-urgent' : ''}`}>
+            <span>
+              <Clock3 aria-hidden="true" /> SISA WAKTU
+            </span>
+            <strong>{formatTime(timeLeft)}</strong>
+          </div>
         </div>
       </header>
 
-      <section className="surveillance-panel panel-frame" aria-label="Pemantauan kamera CCTV">
-        <div className="surveillance-toolbar"><span><span className="signal-bars"><i /><i /><i /></span> MONITORING AKTIF <i className="toolbar-divider" /> PETUGAS: {playerName.trim().toUpperCase()}</span><span className="toolbar-right"><button className="noise-toggle" onClick={() => setNoiseEnabled((enabled) => !enabled)} aria-pressed={noiseEnabled} title={noiseEnabled ? 'Matikan noise' : 'Nyalakan noise'}>{noiseEnabled ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}<span>NOISE {noiseEnabled ? 'ON' : 'OFF'}</span></button><span className="privacy-label"><Crosshair aria-hidden="true" /> 2× DIGITAL</span></span></div>
-        <div className="camera-layout">
-          <button className="feed-arrow feed-arrow-left" onClick={() => switchCamera(-1)} aria-label="Kamera sebelumnya"><ArrowLeft aria-hidden="true" /><span>SEBELUMNYA</span></button>
-          <CctvFeed location={location} playerName={playerName.trim()} student={student} catchBanner={catchBanner} captured={Boolean(catchBanner)} noiseEnabled={noiseEnabled} onCatch={handleCatch} />
-          <button className="feed-arrow feed-arrow-right" onClick={() => switchCamera(1)} aria-label="Kamera berikutnya"><span>BERIKUTNYA</span><ArrowRight aria-hidden="true" /></button>
+      {/* Surveillance CCTV Screen */}
+      <section className="surveillance-panel panel-frame" aria-label="Pemantauan CCTV">
+        <div className="surveillance-toolbar">
+          <span>
+            <span className="signal-bars">
+              <i />
+              <i />
+              <i />
+            </span>{' '}
+            CCTV AKTIF <i className="toolbar-divider" /> PETUGAS:{' '}
+            {playerName.trim().toUpperCase() || 'GURU PIKET'}
+          </span>
+          <span className="toolbar-right">
+            <span className="privacy-label">
+              <Crosshair aria-hidden="true" /> GAME KETELITIAN MATA
+            </span>
+          </span>
         </div>
-        <div className="surveillance-footer"><span><MapPin aria-hidden="true" /> TITIK {location.camera} <b>/</b> {location.shortName}</span><span><span className="status-dot" /> <span className="detect-label">SISTEM DETEKSI AKTIF</span></span><span><Radio aria-hidden="true" /> {caught} SISWA DIAMANKAN</span></div>
+
+        {/* Camera Viewport with Left/Right navigation */}
+        <div className="camera-layout">
+          <button
+            className="feed-arrow feed-arrow-left"
+            onClick={() => switchCamera(-1)}
+            aria-label="Kamera sebelumnya"
+            title="Kamera sebelumnya (Panah Kiri)"
+          >
+            <ArrowLeft aria-hidden="true" />
+            <span>SEBELUMNYA</span>
+          </button>
+
+          <CctvFeed
+            location={location}
+            playerName={playerName.trim()}
+            activeStudent={activeStudent}
+            currentAngleIndex={currentAngleIndex}
+            onAngleChange={setCurrentAngleIndex}
+            onCatch={handleCatchStudent}
+            onMiss={handleMissClick}
+          />
+
+          <button
+            className="feed-arrow feed-arrow-right"
+            onClick={() => switchCamera(1)}
+            aria-label="Kamera berikutnya"
+            title="Kamera berikutnya (Panah Kanan)"
+          >
+            <span>BERIKUTNYA</span>
+            <ArrowRight aria-hidden="true" />
+          </button>
+        </div>
+
+        {/* CCTV Bottom Bar */}
+        <div className="surveillance-footer">
+          <span>
+            <MapPin aria-hidden="true" /> TITIK {location.pinNumber} / {location.shortName}
+          </span>
+          <span>
+            <span className="status-dot" /> CARI ANAK BOLOS DI GAMBAR &amp; KLIK!
+          </span>
+          <span>
+            <Radio aria-hidden="true" /> {caught} SISWA TERCIDUK
+          </span>
+        </div>
       </section>
 
-      <footer className="game-footer"><span><kbd>←</kbd><kbd>→</kbd> PINDAH KAMERA</span><span>KLIK SISWA UNTUK MENANGKAP</span><span><kbd>M</kbd> BUKA PETA</span></footer>
+      {/* Keyboard guide footer */}
+      <footer className="game-footer">
+        <span>
+          <kbd>←</kbd> <kbd>→</kbd> PINDAH KAMERA
+        </span>
+        <span>🔍 KLIK PEMBOLOS DI GAMBAR</span>
+        <span>
+          <kbd>M</kbd> BUKA PETA
+        </span>
+      </footer>
 
+      {/* Fullscreen Interactive Map Overlay */}
       <AnimatePresence>
-        {mapOpen ? <CampusMap isOverlay onClose={() => setMapOpen(false)} onSelect={handleSelectLocation} /> : null}
+        {mapOpen ? (
+          <CampusMap
+            isOverlay
+            currentLocationId={location.id}
+            onClose={() => setMapOpen(false)}
+            onSelect={handleSelectLocation}
+          />
+        ) : null}
       </AnimatePresence>
     </main>
   )

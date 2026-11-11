@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 
-type SoundCue = 'camera' | 'catch' | 'gameOver'
+type SoundCue = 'camera' | 'catch' | 'gameOver' | 'beep'
 
 const NOTES: Record<SoundCue, { frequency: number; duration: number; wave: OscillatorType; volume: number }[]> = {
   camera: [
@@ -10,13 +10,17 @@ const NOTES: Record<SoundCue, { frequency: number; duration: number; wave: Oscil
     { frequency: 560, duration: 0.08, wave: 'triangle', volume: 0.035 },
   ],
   catch: [
-    { frequency: 660, duration: 0.08, wave: 'triangle', volume: 0.06 },
-    { frequency: 990, duration: 0.16, wave: 'sine', volume: 0.055 },
+    { frequency: 520, duration: 0.07, wave: 'triangle', volume: 0.07 },
+    { frequency: 784, duration: 0.09, wave: 'sine', volume: 0.08 },
+    { frequency: 1046, duration: 0.18, wave: 'sine', volume: 0.09 },
   ],
   gameOver: [
-    { frequency: 440, duration: 0.16, wave: 'triangle', volume: 0.045 },
-    { frequency: 330, duration: 0.2, wave: 'triangle', volume: 0.04 },
-    { frequency: 220, duration: 0.28, wave: 'sine', volume: 0.04 },
+    { frequency: 523, duration: 0.16, wave: 'triangle', volume: 0.05 },
+    { frequency: 440, duration: 0.2, wave: 'triangle', volume: 0.045 },
+    { frequency: 330, duration: 0.28, wave: 'sine', volume: 0.04 },
+  ],
+  beep: [
+    { frequency: 320, duration: 0.04, wave: 'sine', volume: 0.025 },
   ],
 }
 
@@ -32,7 +36,8 @@ export function useGameAudio() {
       if (audio.state === 'suspended') void audio.resume()
 
       let startAt = audio.currentTime
-      NOTES[cue].forEach(({ frequency, duration, wave, volume }) => {
+      const soundSeq = NOTES[cue] || NOTES.beep
+      soundSeq.forEach(({ frequency, duration, wave, volume }) => {
         const oscillator = audio.createOscillator()
         const gain = audio.createGain()
         oscillator.type = wave
@@ -47,7 +52,7 @@ export function useGameAudio() {
         startAt += duration * 0.82
       })
     } catch {
-      // Audio is optional; gameplay remains fully usable when browser audio is unavailable.
+      // Audio fallback
     }
   }, [])
 

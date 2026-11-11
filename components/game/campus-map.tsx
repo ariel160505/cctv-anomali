@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { ArrowLeft, ArrowUpRight, LocateFixed, MapPin, X } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Camera, CheckCircle2, Crosshair, MapPin, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { LOCATIONS, type CampusLocation } from '@/lib/game-data'
 
@@ -9,15 +9,17 @@ type CampusMapProps = {
   onSelect: (location: CampusLocation) => void
   onClose?: () => void
   isOverlay?: boolean
+  currentLocationId?: string
 }
 
-export function CampusMap({ onSelect, onClose, isOverlay = false }: CampusMapProps) {
+export function CampusMap({ onSelect, onClose, isOverlay = false, currentLocationId }: CampusMapProps) {
   return (
     <motion.main
       className={`map-screen ${isOverlay ? 'map-screen-overlay' : ''}`}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.24, ease: 'easeOut' }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.22, ease: 'easeOut' }}
       aria-labelledby="map-title"
     >
       <div className="map-topline">
@@ -27,11 +29,15 @@ export function CampusMap({ onSelect, onClose, isOverlay = false }: CampusMapPro
               <ArrowLeft aria-hidden="true" />
             </button>
           ) : null}
-          <span className="eyebrow">PETA OPERASIONAL / SEKTOR 07</span>
-          <h1 id="map-title">Pilih titik pantau</h1>
-          <p>Ketuk penanda untuk berpindah langsung ke kamera CCTV.</p>
+          <span className="eyebrow">
+            <Crosshair aria-hidden="true" /> DENAH AREA SEKOLAH
+          </span>
+          <h1 id="map-title">Pilih Titik Pantau CCTV</h1>
+          <p>Klik salah satu pin nomor (1 - 7) di peta atau pilih dari daftar lokasi.</p>
         </div>
-        <div className="map-live-tag"><span className="status-dot" /> 7 KAMERA AKTIF</div>
+        <div className="map-live-tag">
+          <span className="status-dot" /> 7 TITIK CCTV ONLINE
+        </div>
         {isOverlay && onClose ? (
           <button className="icon-button map-close-button" onClick={onClose} aria-label="Tutup peta">
             <X aria-hidden="true" />
@@ -40,56 +46,82 @@ export function CampusMap({ onSelect, onClose, isOverlay = false }: CampusMapPro
       </div>
 
       <div className="map-content">
-        <section className="map-board" aria-label="Peta interaktif kampus">
-          <Image
-            src="/images/map.png"
-            alt="Peta ilustrasi kampus dengan gedung, kantin, kebun, lapangan, masjid, dan parkiran"
-            fill
-            priority
-            sizes="(max-width: 800px) 100vw, 70vw"
-            className="campus-map-image"
-          />
-          <div className="map-grid-overlay" aria-hidden="true" />
-          <div className="map-compass" aria-label="Arah utara"><ArrowUpRight aria-hidden="true" /><span>UTARA</span></div>
-          <div className="map-scale" aria-hidden="true"><span /> 50 m</div>
-          {LOCATIONS.map((location, index) => (
-            <button
-              type="button"
-              key={location.id}
-              className="map-pin"
-              style={{ left: `${location.x}%`, top: `${location.y}%` }}
-              onClick={() => onSelect(location)}
-              aria-label={`Pilih ${location.name}, kamera ${location.camera}`}
-            >
-              <span className="map-pin-tooltip">
-                <strong>{location.name}</strong>
-                <small>{location.description}</small>
-              </span>
-              <span className="map-pin-number">{String(index + 1).padStart(2, '0')}</span>
-              <MapPin className="map-pin-icon" aria-hidden="true" />
-            </button>
-          ))}
-          <div className="map-corner-label"><LocateFixed aria-hidden="true" /> SEKOLAH NUSANTARA</div>
+        {/* Interactive Map Board with real MAP GAME.jpg */}
+        <section className="map-board" aria-label="Peta interaktif sekolah">
+          <div className="map-image-wrapper">
+            <Image
+              src="/images/school/map.jpg"
+              alt="Peta Interaktif Sekolah untuk Mencari Pembolos"
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 75vw"
+              className="campus-map-image object-contain"
+            />
+          </div>
+
+          {/* Interactive Clickable Pins overlaying the 7 locations */}
+          {LOCATIONS.map((loc) => {
+            const isCurrent = loc.id === currentLocationId
+            return (
+              <button
+                type="button"
+                key={loc.id}
+                className={`map-hotspot-pin ${isCurrent ? 'map-hotspot-current' : ''}`}
+                style={{ left: `${loc.mapX}%`, top: `${loc.mapY}%` }}
+                onClick={() => onSelect(loc)}
+                aria-label={`Pilih kamera ${loc.pinNumber}: ${loc.name}`}
+              >
+                {/* Pulse wave ring */}
+                <span className="pin-pulse-wave" />
+
+                {/* Pin Circle with Number matching the map */}
+                <span className="pin-marker-badge">
+                  <span className="pin-number">{loc.pinNumber}</span>
+                </span>
+
+                {/* Floating Tooltip */}
+                <span className="map-pin-tooltip">
+                  <span className="tooltip-cam">CCTV {loc.camera}</span>
+                  <strong>{loc.name}</strong>
+                  <small>{loc.description}</small>
+                </span>
+              </button>
+            )
+          })}
         </section>
 
-        <aside className="location-list" aria-label="Daftar lokasi kamera">
+        {/* Location List Panel */}
+        <aside className="location-list" aria-label="Daftar lokasi CCTV">
           <div className="location-list-heading">
-            <span className="eyebrow">DAFTAR KAMERA</span>
-            <span className="camera-count">07 / 07</span>
+            <span className="eyebrow">DAFTAR TITIK KAMERA</span>
+            <span className="camera-count">07 TITIK</span>
           </div>
           <div className="location-list-items">
-            {LOCATIONS.map((location) => (
-              <button className="location-row" key={location.id} onClick={() => onSelect(location)}>
-                <span className="location-row-id">{location.camera}</span>
-                <span className="location-row-copy">
-                  <strong>{location.name}</strong>
-                  <small>{location.description}</small>
-                </span>
-                <ArrowUpRight className="location-row-arrow" aria-hidden="true" />
-              </button>
-            ))}
+            {LOCATIONS.map((loc) => {
+              const isCurrent = loc.id === currentLocationId
+              return (
+                <button
+                  key={loc.id}
+                  className={`location-row ${isCurrent ? 'location-row-active' : ''}`}
+                  onClick={() => onSelect(loc)}
+                >
+                  <span className="location-row-id">
+                    {loc.pinNumber}
+                  </span>
+                  <span className="location-row-copy">
+                    <strong>{loc.name}</strong>
+                    <small>{loc.description}</small>
+                  </span>
+                  {isCurrent ? (
+                    <CheckCircle2 className="location-row-check" aria-hidden="true" />
+                  ) : (
+                    <ArrowUpRight className="location-row-arrow" aria-hidden="true" />
+                  )}
+                </button>
+              )
+            })}
           </div>
-          <p className="map-hint">Pilih kamera pertama untuk memulai ronda.</p>
+          <p className="map-hint">💡 Klik kamera mana saja untuk langsung memantau area tersebut.</p>
         </aside>
       </div>
     </motion.main>
