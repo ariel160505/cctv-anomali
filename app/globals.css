@@ -896,3 +896,226 @@ body {
   .modern-cctv-stage { aspect-ratio: 4 / 3; }
   .modern-bottom-bar { flex-direction: column; align-items: center; gap: 4px; }
 }
+
+
+/* ==========================================================================
+   OBSERVATION DUTY ANOMALY DETECTION & REPORTING STYLES
+   ========================================================================== */
+
+/* Anomaly category guide pills in lobby */
+.anomaly-guide-pills {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 14px 0 18px;
+}
+.anomaly-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(18, 28, 20, 0.7);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  font-size: 12px;
+  color: #e2e8f0;
+}
+.pill-icon {
+  font-size: 16px;
+}
+.pill-text {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Threat Status Badges in Top Control Bar */
+.threat-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font: 700 11px var(--font-mono);
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+.threat-calm {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+.threat-warning {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+  animation: pulse-warn 1.5s infinite;
+}
+.threat-danger {
+  background: rgba(239, 68, 68, 0.22);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #f87171;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+  animation: pulse-danger 0.8s infinite;
+}
+@keyframes pulse-warn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+@keyframes pulse-danger {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+/* Static Glitch effect on CCTV feed */
+.cctv-static-glitch {
+  filter: contrast(1.4) brightness(1.15) hue-rotate(15deg);
+  transform: translate(2px, -1px);
+}
+
+/* Interactive Floating Report Modal */
+.report-dialog-box {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  width: min(92vw, 360px);
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(11, 19, 13, 0.95);
+  border: 1.5px solid rgba(74, 222, 128, 0.5);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 24px rgba(74, 222, 128, 0.2);
+  backdrop-filter: blur(8px);
+}
+.report-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.report-pin-tag {
+  font: 700 10px var(--font-mono);
+  color: var(--brand-green);
+  background: rgba(74, 222, 128, 0.12);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.report-btn-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.report-btn-close:hover {
+  color: #fff;
+}
+.report-dialog-title {
+  font: 800 12px var(--font-mono);
+  color: #f8fafc;
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+.report-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.report-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(22, 36, 25, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  text-align: left;
+}
+.report-option-btn:hover {
+  background: rgba(74, 222, 128, 0.2);
+  border-color: var(--brand-green);
+  transform: translateX(3px);
+}
+.option-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.option-label {
+  font: 700 13px var(--font-mono);
+  color: #ffffff;
+}
+.option-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Bottom Report Trigger Button */
+.modern-cctv-bottom-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  pointer-events: auto;
+}
+.report-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 24px;
+  background: rgba(10, 16, 11, 0.88);
+  border: 1.5px solid rgba(74, 222, 128, 0.45);
+  color: #f1f5f9;
+  font: 700 12px var(--font-mono);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+.report-trigger-btn:hover {
+  background: rgba(74, 222, 128, 0.2);
+  border-color: var(--brand-green);
+  color: #fff;
+  transform: scale(1.03);
+}
+
+/* Feedback toasts */
+.feedback-toast {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  pointer-events: none;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+}
+.feedback-toast-success {
+  background: rgba(6, 78, 59, 0.95);
+  border: 1.5px solid #34d399;
+  color: #ecfdf5;
+}
+.feedback-toast-fail {
+  background: rgba(136, 19, 55, 0.95);
+  border: 1.5px solid #fb7185;
+  color: #fff1f2;
+}
+.feedback-title {
+  font: 900 14px var(--font-mono);
+  letter-spacing: 0.05em;
+}
+.feedback-sub {
+  font-size: 11px;
+  opacity: 0.9;
+}

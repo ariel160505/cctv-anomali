@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 
-type SoundCue = 'camera' | 'catch' | 'gameOver' | 'beep'
+export type SoundCue = 'camera' | 'catch' | 'gameOver' | 'beep' | 'buzzer' | 'siren' | 'verified'
 
 const NOTES: Record<SoundCue, { frequency: number; duration: number; wave: OscillatorType; volume: number }[]> = {
   camera: [
@@ -14,13 +14,26 @@ const NOTES: Record<SoundCue, { frequency: number; duration: number; wave: Oscil
     { frequency: 784, duration: 0.09, wave: 'sine', volume: 0.08 },
     { frequency: 1046, duration: 0.18, wave: 'sine', volume: 0.09 },
   ],
+  verified: [
+    { frequency: 659, duration: 0.08, wave: 'sine', volume: 0.08 },
+    { frequency: 880, duration: 0.1, wave: 'sine', volume: 0.09 },
+    { frequency: 1318, duration: 0.22, wave: 'triangle', volume: 0.1 },
+  ],
+  buzzer: [
+    { frequency: 160, duration: 0.18, wave: 'sawtooth', volume: 0.08 },
+    { frequency: 130, duration: 0.24, wave: 'sawtooth', volume: 0.08 },
+  ],
+  siren: [
+    { frequency: 440, duration: 0.12, wave: 'sawtooth', volume: 0.06 },
+    { frequency: 880, duration: 0.12, wave: 'sawtooth', volume: 0.06 },
+  ],
   gameOver: [
     { frequency: 523, duration: 0.16, wave: 'triangle', volume: 0.05 },
     { frequency: 440, duration: 0.2, wave: 'triangle', volume: 0.045 },
     { frequency: 330, duration: 0.28, wave: 'sine', volume: 0.04 },
   ],
   beep: [
-    { frequency: 320, duration: 0.04, wave: 'sine', volume: 0.025 },
+    { frequency: 440, duration: 0.04, wave: 'sine', volume: 0.03 },
   ],
 }
 

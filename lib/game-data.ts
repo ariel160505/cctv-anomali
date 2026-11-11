@@ -1,11 +1,23 @@
-export type HidingSpot = {
+import anomaliesCatalog from './anomalies-data.json'
+
+export type AnomalyType = 'benda-hilang' | 'penambahan-benda' | 'sosok-misterius' | 'siswa-bolos'
+
+export type RoomAnomaly = {
   id: string
+  type: AnomalyType
+  label: string
+  image: string
   x: number // percentage 0-100
   y: number // percentage 0-100
-  scale: number // scale factor (0.35 - 0.8)
-  pose: 'peek-left' | 'peek-right' | 'crouch' | 'peek-behind' | 'stand-far'
-  angleIndex: number // which photo index this spot belongs to
-  hint: string
+  w: number // percentage
+  h: number // percentage
+}
+
+export type ActiveAnomaly = {
+  id: string
+  locationId: string
+  anomaly: RoomAnomaly
+  spawnedAt: number
 }
 
 export type CampusLocation = {
@@ -14,17 +26,72 @@ export type CampusLocation = {
   name: string
   shortName: string
   description: string
+  baseImage: string
   images: string[]
   mapX: number // X coordinate on clean MAP GAME V2.jpg (%)
   mapY: number // Y coordinate on clean MAP GAME V2.jpg (%)
   pinNumber: number
-  hidingSpots: HidingSpot[]
+  anomalies: RoomAnomaly[]
 }
 
 export type LeaderboardEntry = {
   name: string
   score: number
   date?: string
+}
+
+export const ANOMALY_CATEGORIES: {
+  type: AnomalyType
+  label: string
+  icon: string
+  color: string
+  description: string
+}[] = [
+  {
+    type: 'benda-hilang',
+    label: 'Benda Hilang',
+    icon: '📦',
+    color: '#38bdf8',
+    description: 'Benda atau fasilitas yang tiba-tiba lenyap',
+  },
+  {
+    type: 'penambahan-benda',
+    label: 'Penambahan Benda',
+    icon: '🎒',
+    color: '#fbbf24',
+    description: 'Tas, koper, atau barang mencurigakan yang baru muncul',
+  },
+  {
+    type: 'sosok-misterius',
+    label: 'Sosok Misterius',
+    icon: '👤',
+    color: '#a855f7',
+    description: 'Bayangan hitam atau entitas ganjil di sudut ruangan',
+  },
+  {
+    type: 'siswa-bolos',
+    label: 'Siswa Bolos',
+    icon: '🏃',
+    color: '#34d399',
+    description: 'Murid yang bersembunyi atau mengintip di jam pelajaran',
+  },
+]
+
+// Helper to look up anomalies catalog
+function getAnomaliesForLocation(locationId: string): { baseImage: string; anomalies: RoomAnomaly[] } {
+  const match = (anomaliesCatalog as { locationId: string; baseImage: string; anomalies: RoomAnomaly[] }[]).find(
+    (item) => item.locationId === locationId
+  )
+  if (match) {
+    return {
+      baseImage: match.baseImage,
+      anomalies: match.anomalies,
+    }
+  }
+  return {
+    baseImage: `/images/school/${locationId}/${locationId}-base.jpg`,
+    anomalies: [],
+  }
 }
 
 export const LOCATIONS: CampusLocation[] = [
@@ -34,20 +101,12 @@ export const LOCATIONS: CampusLocation[] = [
     name: 'MESJID AL-HARAMAIN',
     shortName: 'Mesjid Al-Haramain',
     description: 'Ruang ibadah, serambi & area tirai',
-    images: [
-      '/images/school/masjid/1.jpg',
-      '/images/school/masjid/2.jpg',
-    ],
+    baseImage: getAnomaliesForLocation('masjid-al-haramain').baseImage,
+    images: ['/images/school/masjid/1.jpg', '/images/school/masjid/2.jpg'],
     mapX: 24,
     mapY: 56,
     pinNumber: 1,
-    hidingSpots: [
-      // Grounded on carpet floor or behind pillars
-      { id: 'm-1', angleIndex: 0, x: 19, y: 68, scale: 0.65, pose: 'peek-left', hint: 'Di samping pilar kiri' },
-      { id: 'm-2', angleIndex: 0, x: 66, y: 44, scale: 0.45, pose: 'crouch', hint: 'Dekat mimbar mihrab' },
-      { id: 'm-3', angleIndex: 0, x: 34, y: 91, scale: 0.75, pose: 'peek-behind', hint: 'Di balik tirai pembatas bawah' },
-      { id: 'm-4', angleIndex: 0, x: 76, y: 44, scale: 0.4, pose: 'peek-right', hint: 'Di selasar kaca kanan' },
-    ],
+    anomalies: getAnomaliesForLocation('masjid-al-haramain').anomalies,
   },
   {
     id: 'lapangan',
@@ -55,20 +114,12 @@ export const LOCATIONS: CampusLocation[] = [
     name: 'LAPANGAN OLAHRAGA',
     shortName: 'Lapangan',
     description: 'Lapangan basket, tribun & parkir motor',
-    images: [
-      '/images/school/lapangan/1.jpg',
-      '/images/school/lapangan/2.jpg',
-    ],
+    baseImage: getAnomaliesForLocation('lapangan').baseImage,
+    images: ['/images/school/lapangan/LP-asli.jpg', '/images/school/lapangan/LP-asli2.jpg'],
     mapX: 54,
     mapY: 49,
     pinNumber: 2,
-    hidingSpots: [
-      // Grounded on pavement between bikes or bleachers
-      { id: 'l-1', angleIndex: 0, x: 35, y: 80, scale: 0.48, pose: 'crouch', hint: 'Di antara motor parkir depan' },
-      { id: 'l-2', angleIndex: 0, x: 76, y: 40, scale: 0.4, pose: 'crouch', hint: 'Di tangga tribun seberang' },
-      { id: 'l-3', angleIndex: 0, x: 57, y: 48, scale: 0.38, pose: 'stand-far', hint: 'Dekat tiang basket tengah' },
-      { id: 'l-4', angleIndex: 0, x: 23, y: 52, scale: 0.42, pose: 'peek-left', hint: 'Di balik tiang kawat kiri' },
-    ],
+    anomalies: getAnomaliesForLocation('lapangan').anomalies,
   },
   {
     id: 'kebun-smp',
@@ -76,21 +127,12 @@ export const LOCATIONS: CampusLocation[] = [
     name: 'KEBUN SMP',
     shortName: 'Kebun SMP',
     description: 'Bedengan tanaman & pohon rindang',
-    images: [
-      '/images/school/kebun-smp/1.jpg',
-      '/images/school/kebun-smp/2.jpg',
-      '/images/school/kebun-smp/3.jpg',
-    ],
+    baseImage: getAnomaliesForLocation('kebun-smp').baseImage,
+    images: ['/images/school/kebun-smp/KBN1-asli.jpg', '/images/school/kebun-smp/KBN2-asli.jpg'],
     mapX: 64,
     mapY: 22,
     pinNumber: 3,
-    hidingSpots: [
-      // Grounded on soil/planter boxes
-      { id: 'kb-1', angleIndex: 0, x: 40, y: 68, scale: 0.55, pose: 'crouch', hint: 'Jongkok di balik kotak tanah' },
-      { id: 'kb-2', angleIndex: 0, x: 73, y: 36, scale: 0.45, pose: 'peek-left', hint: 'Di balik rimbun pohon' },
-      { id: 'kb-3', angleIndex: 0, x: 49, y: 36, scale: 0.38, pose: 'peek-behind', hint: 'Di dekat pagar tembok belakang' },
-      { id: 'kb-4', angleIndex: 0, x: 33, y: 26, scale: 0.4, pose: 'peek-right', hint: 'Dekat pohon pisang' },
-    ],
+    anomalies: getAnomaliesForLocation('kebun-smp').anomalies,
   },
   {
     id: 'parkiran',
@@ -98,20 +140,12 @@ export const LOCATIONS: CampusLocation[] = [
     name: 'PARKIRAN KENDARAAN',
     shortName: 'Parkiran',
     description: 'Area kanopi motor & mobil',
-    images: [
-      '/images/school/parkiran/1.jpg',
-      '/images/school/parkiran/2.jpg',
-    ],
+    baseImage: getAnomaliesForLocation('parkiran').baseImage,
+    images: ['/images/school/parkiran/P1-Asli.jpg', '/images/school/parkiran/P2-Asli.jpg'],
     mapX: 57,
     mapY: 88,
     pinNumber: 4,
-    hidingSpots: [
-      // Grounded between motorcycles
-      { id: 'p-1', angleIndex: 0, x: 38, y: 68, scale: 0.6, pose: 'crouch', hint: 'Di sela motor tengah' },
-      { id: 'p-2', angleIndex: 0, x: 70, y: 62, scale: 0.55, pose: 'peek-left', hint: 'Di balik tiang kanopi parkir' },
-      { id: 'p-3', angleIndex: 0, x: 50, y: 52, scale: 0.45, pose: 'stand-far', hint: 'Dekat pintu pos belakang' },
-      { id: 'p-4', angleIndex: 0, x: 53, y: 72, scale: 0.65, pose: 'peek-behind', hint: 'Di balik motor matic merah' },
-    ],
+    anomalies: getAnomaliesForLocation('parkiran').anomalies,
   },
   {
     id: 'gedung-smk',
@@ -119,21 +153,12 @@ export const LOCATIONS: CampusLocation[] = [
     name: 'GEDUNG SMK',
     shortName: 'Gedung SMK',
     description: 'Koridor lantai atas & rak sepatu',
-    images: [
-      '/images/school/gedung-smk/1.jpg',
-      '/images/school/gedung-smk/2.jpg',
-      '/images/school/gedung-smk/3.jpg',
-    ],
+    baseImage: getAnomaliesForLocation('gedung-smk').baseImage,
+    images: ['/images/school/gedung-smk/GSMK1-asli.jpg', '/images/school/gedung-smk/GSMK2-asli.jpg'],
     mapX: 70,
     mapY: 68,
     pinNumber: 5,
-    hidingSpots: [
-      // Realistic grounded positions in the hallway:
-      { id: 'smk-1', angleIndex: 0, x: 37, y: 62, scale: 0.65, pose: 'peek-left', hint: 'Mengintip dari balik pilar oranye' },
-      { id: 'smk-2', angleIndex: 0, x: 44, y: 76, scale: 0.58, pose: 'crouch', hint: 'Jongkok di samping rak sepatu' },
-      { id: 'smk-3', angleIndex: 0, x: 61, y: 56, scale: 0.32, pose: 'stand-far', hint: 'Berdiri di ujung lorong terang' },
-      { id: 'smk-4', angleIndex: 0, x: 70, y: 60, scale: 0.6, pose: 'peek-right', hint: 'Di balik dinding kanan' },
-    ],
+    anomalies: getAnomaliesForLocation('gedung-smk').anomalies,
   },
   {
     id: 'gedung-smp',
@@ -141,18 +166,12 @@ export const LOCATIONS: CampusLocation[] = [
     name: 'GEDUNG SMP',
     shortName: 'Gedung SMP',
     description: 'Lorong kelas berpenyekat tirai & rak sepatu',
-    images: [
-      '/images/school/gedung-smp/1.jpg',
-    ],
+    baseImage: getAnomaliesForLocation('gedung-smp').baseImage,
+    images: ['/images/school/gedung-smp/GSMP1-asli.jpg', '/images/school/gedung-smp/GSMP2-asli.jpg'],
     mapX: 80,
     mapY: 34,
     pinNumber: 6,
-    hidingSpots: [
-      { id: 'smp-1', angleIndex: 0, x: 33, y: 52, scale: 0.58, pose: 'peek-behind', hint: 'Di balik tirai jendela koridor' },
-      { id: 'smp-2', angleIndex: 0, x: 68, y: 82, scale: 0.65, pose: 'crouch', hint: 'Jongkok di dekat rak sepatu' },
-      { id: 'smp-3', angleIndex: 0, x: 84, y: 68, scale: 0.45, pose: 'peek-left', hint: 'Di lorong samping kanan' },
-      { id: 'smp-4', angleIndex: 0, x: 48, y: 66, scale: 0.68, pose: 'peek-right', hint: 'Di balik sekat dinding' },
-    ],
+    anomalies: getAnomaliesForLocation('gedung-smp').anomalies,
   },
   {
     id: 'kantin',
@@ -160,30 +179,22 @@ export const LOCATIONS: CampusLocation[] = [
     name: 'KANTIN SEKOLAH',
     shortName: 'Kantin',
     description: 'Meja panjang, bangku & etalase warung',
-    images: [
-      '/images/school/kantin/1.jpg',
-      '/images/school/kantin/2.jpg',
-      '/images/school/kantin/3.jpg',
-    ],
+    baseImage: getAnomaliesForLocation('kantin').baseImage,
+    images: ['/images/school/kantin/K1-asli.jpg', '/images/school/kantin/K2-asli.jpg'],
     mapX: 72,
     mapY: 50,
     pinNumber: 7,
-    hidingSpots: [
-      { id: 'k-1', angleIndex: 0, x: 53, y: 76, scale: 0.62, pose: 'crouch', hint: 'Di bawah meja panjang kantin' },
-      { id: 'k-2', angleIndex: 0, x: 84, y: 58, scale: 0.52, pose: 'peek-left', hint: 'Di balik etalase warung Tora' },
-      { id: 'k-3', angleIndex: 0, x: 23, y: 66, scale: 0.5, pose: 'crouch', hint: 'Di sela bangku meja kiri' },
-      { id: 'k-4', angleIndex: 0, x: 35, y: 55, scale: 0.42, pose: 'peek-right', hint: 'Di pojokan belakang kantin' },
-    ],
+    anomalies: getAnomaliesForLocation('kantin').anomalies,
   },
 ]
 
 export const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
-  { name: 'Satpam Bambang', score: 1200 },
-  { name: 'Guru BK Ani', score: 950 },
-  { name: 'Pak Joko', score: 700 },
+  { name: 'Satpam Bambang', score: 1800 },
+  { name: 'Guru BK Ani', score: 1350 },
+  { name: 'Pak Joko', score: 900 },
 ]
 
-export const LEADERBOARD_STORAGE_KEY = 'cctv-patrol-leaderboard-v3'
+export const LEADERBOARD_STORAGE_KEY = 'cctv-anomali-leaderboard-v4'
 
 export function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60)

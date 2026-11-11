@@ -1,0 +1,324 @@
+[
+  {
+    "locationId": "gedung-smk",
+    "baseImage": "/images/school/gedung-smk/gedung-smk-base.jpg",
+    "anomalies": [
+      {
+        "id": "gedung-smk-benda-hilang",
+        "type": "benda-hilang",
+        "label": "Rak Sepatu Lorong Hilang",
+        "image": "/images/school/gedung-smk/gedung-smk-anomali-benda-hilang.jpg",
+        "x": 44,
+        "y": 72,
+        "w": 14,
+        "h": 22
+      },
+      {
+        "id": "gedung-smk-penambahan-benda",
+        "type": "penambahan-benda",
+        "label": "Tas Ransel Tak Bertuan di Lantai",
+        "image": "/images/school/gedung-smk/gedung-smk-anomali-penambahan-benda.jpg",
+        "x": 55,
+        "y": 78,
+        "w": 7,
+        "h": 12
+      },
+      {
+        "id": "gedung-smk-sosok-misterius",
+        "type": "sosok-misterius",
+        "label": "Sosok Bayangan Ujung Lorong",
+        "image": "/images/school/gedung-smk/gedung-smk-anomali-sosok-misterius.jpg",
+        "x": 61,
+        "y": 55,
+        "w": 4,
+        "h": 14
+      },
+      {
+        "id": "gedung-smk-siswa-bolos",
+        "type": "siswa-bolos",
+        "label": "Siswa Mengintip dari Balik Pilar Oranye",
+        "image": "/images/school/gedung-smk/gedung-smk-anomali-siswa-bolos.jpg",
+        "x": 37,
+        "y": 62,
+        "w": 7,
+        "h": 15
+      }
+    ]
+  },
+  {
+    "locationId": "gedung-smp",
+    "baseImage": "/images/school/gedung-smp/gedung-smp-base.jpg",
+    "anomalies": [
+      {
+        "id": "gedung-smp-benda-hilang",
+        "type": "benda-hilang",
+        "label": "Rak Sepatu Koridor Hilang",
+        "image": "/images/school/gedung-smp/gedung-smp-anomali-benda-hilang.jpg",
+        "x": 68,
+        "y": 80,
+        "w": 16,
+        "h": 22
+      },
+      {
+        "id": "gedung-smp-penambahan-benda",
+        "type": "penambahan-benda",
+        "label": "Tas Ransel Tak Bertuan di Koridor",
+        "image": "/images/school/gedung-smp/gedung-smp-anomali-penambahan-benda.jpg",
+        "x": 48,
+        "y": 75,
+        "w": 7,
+        "h": 12
+      },
+      {
+        "id": "gedung-smp-sosok-misterius",
+        "type": "sosok-misterius",
+        "label": "Sosok Bayangan di Pintu Kaca",
+        "image": "/images/school/gedung-smp/gedung-smp-anomali-sosok-misterius.jpg",
+        "x": 84,
+        "y": 66,
+        "w": 4,
+        "h": 13
+      },
+      {
+        "id": "gedung-smp-siswa-bolos",
+        "type": "siswa-bolos",
+        "label": "Siswa Mengintip dari Balik Tirai Jendela",
+        "image": "/images/school/gedung-smp/gedung-smp-anomali-siswa-bolos.jpg",
+        "x": 33,
+        "y": 52,
+        "w": 7,
+        "h": 15
+      }
+    ]
+  },
+  {
+    "locationId": "kantin",
+    "baseImage": "/images/school/kantin/kantin-base.jpg",
+    "anomalies": [
+      {
+        "id": "kantin-benda-hilang",
+        "type": "benda-hilang",
+        "label": "Bangku Makan Kantin Hilang",
+        "image": "/images/school/kantin/kantin-anomali-benda-hilang.jpg",
+        "x": 23,
+        "y": 65,
+        "w": 16,
+        "h": 14
+      },
+      {
+        "id": "kantin-penambahan-benda",
+        "type": "penambahan-benda",
+        "label": "Tas Olahraga di Atas Meja Makan",
+        "image": "/images/school/kantin/kantin-anomali-penambahan-benda.jpg",
+        "x": 66,
+        "y": 68,
+        "w": 8,
+        "h": 13
+      },
+      {
+        "id": "kantin-sosok-misterius",
+        "type": "sosok-misterius",
+        "label": "Sosok Misterius di Tangga Belakang",
+        "image": "/images/school/kantin/kantin-anomali-sosok-misterius.jpg",
+        "x": 34,
+        "y": 51,
+        "w": 4,
+        "h": 12
+      },
+      {
+        "id": "kantin-siswa-bolos",
+        "type": "siswa-bolos",
+        "label": "Siswa Jongkok di Kolong Meja Kantin",
+        "image": "/images/school/kantin/kantin-anomali-siswa-bolos.jpg",
+        "x": 53,
+        "y": 76,
+        "w": 9,
+        "h": 15
+      }
+    ]
+  },
+  {
+    "locationId": "parkiran",
+    "baseImage": "/images/school/parkiran/parkiran-base.jpg",
+    "anomalies": [
+      {
+        "id": "parkiran-benda-hilang",
+        "type": "benda-hilang",
+        "label": "Motor Parkir Depan Hilang",
+        "image": "/images/school/parkiran/parkiran-anomali-benda-hilang.jpg",
+        "x": 42,
+        "y": 70,
+        "w": 18,
+        "h": 18
+      },
+      {
+        "id": "parkiran-penambahan-benda",
+        "type": "penambahan-benda",
+        "label": "Koper Misterius di Sela Kendaraan",
+        "image": "/images/school/parkiran/parkiran-anomali-penambahan-benda.jpg",
+        "x": 62,
+        "y": 75,
+        "w": 7,
+        "h": 12
+      },
+      {
+        "id": "parkiran-sosok-misterius",
+        "type": "sosok-misterius",
+        "label": "Sosok Bayangan di Dekat Tiang Kanopi",
+        "image": "/images/school/parkiran/parkiran-anomali-sosok-misterius.jpg",
+        "x": 50,
+        "y": 52,
+        "w": 4,
+        "h": 13
+      },
+      {
+        "id": "parkiran-siswa-bolos",
+        "type": "siswa-bolos",
+        "label": "Siswa Jongkok di Sela Barisan Motor",
+        "image": "/images/school/parkiran/parkiran-anomali-siswa-bolos.jpg",
+        "x": 38,
+        "y": 66,
+        "w": 8,
+        "h": 16
+      }
+    ]
+  },
+  {
+    "locationId": "lapangan",
+    "baseImage": "/images/school/lapangan/lapangan-base.jpg",
+    "anomalies": [
+      {
+        "id": "lapangan-benda-hilang",
+        "type": "benda-hilang",
+        "label": "Tiang / Jaring Gawang Lapangan Hilang",
+        "image": "/images/school/lapangan/lapangan-anomali-benda-hilang.jpg",
+        "x": 55,
+        "y": 48,
+        "w": 12,
+        "h": 16
+      },
+      {
+        "id": "lapangan-penambahan-benda",
+        "type": "penambahan-benda",
+        "label": "Tas Olahraga Merah di Garis Lapangan",
+        "image": "/images/school/lapangan/lapangan-anomali-penambahan-benda.jpg",
+        "x": 54,
+        "y": 56,
+        "w": 6,
+        "h": 10
+      },
+      {
+        "id": "lapangan-sosok-misterius",
+        "type": "sosok-misterius",
+        "label": "Sosok Hitam Mengawasi di Tribun",
+        "image": "/images/school/lapangan/lapangan-anomali-sosok-misterius.jpg",
+        "x": 76,
+        "y": 40,
+        "w": 4,
+        "h": 12
+      },
+      {
+        "id": "lapangan-siswa-bolos",
+        "type": "siswa-bolos",
+        "label": "Siswa Mengintip di Balik Tiang Kawat",
+        "image": "/images/school/lapangan/lapangan-anomali-siswa-bolos.jpg",
+        "x": 23,
+        "y": 52,
+        "w": 7,
+        "h": 14
+      }
+    ]
+  },
+  {
+    "locationId": "kebun-smp",
+    "baseImage": "/images/school/kebun-smp/kebun-smp-base.jpg",
+    "anomalies": [
+      {
+        "id": "kebun-smp-benda-hilang",
+        "type": "benda-hilang",
+        "label": "Kotak Bedengan Tanaman Hilang",
+        "image": "/images/school/kebun-smp/kebun-smp-anomali-benda-hilang.jpg",
+        "x": 40,
+        "y": 68,
+        "w": 14,
+        "h": 14
+      },
+      {
+        "id": "kebun-smp-penambahan-benda",
+        "type": "penambahan-benda",
+        "label": "Ember / Tas Alat Kebun Tergeletak",
+        "image": "/images/school/kebun-smp/kebun-smp-anomali-penambahan-benda.jpg",
+        "x": 48,
+        "y": 62,
+        "w": 6,
+        "h": 10
+      },
+      {
+        "id": "kebun-smp-sosok-misterius",
+        "type": "sosok-misterius",
+        "label": "Sosok Bayangan di Dalam Rimbun Pohon",
+        "image": "/images/school/kebun-smp/kebun-smp-anomali-sosok-misterius.jpg",
+        "x": 73,
+        "y": 35,
+        "w": 4,
+        "h": 11
+      },
+      {
+        "id": "kebun-smp-siswa-bolos",
+        "type": "siswa-bolos",
+        "label": "Siswa Jongkok Bersembunyi di Kotak Tanah",
+        "image": "/images/school/kebun-smp/kebun-smp-anomali-siswa-bolos.jpg",
+        "x": 40,
+        "y": 68,
+        "w": 7,
+        "h": 14
+      }
+    ]
+  },
+  {
+    "locationId": "masjid-al-haramain",
+    "baseImage": "/images/school/masjid-al-haramain/masjid-al-haramain-base.jpg",
+    "anomalies": [
+      {
+        "id": "masjid-al-haramain-benda-hilang",
+        "type": "benda-hilang",
+        "label": "Tirai Pembatas Bawah Hilang",
+        "image": "/images/school/masjid-al-haramain/masjid-al-haramain-anomali-benda-hilang.jpg",
+        "x": 34,
+        "y": 88,
+        "w": 18,
+        "h": 12
+      },
+      {
+        "id": "masjid-al-haramain-penambahan-benda",
+        "type": "penambahan-benda",
+        "label": "Tas Ransel Hitam di Karpet",
+        "image": "/images/school/masjid-al-haramain/masjid-al-haramain-anomali-penambahan-benda.jpg",
+        "x": 52,
+        "y": 72,
+        "w": 7,
+        "h": 12
+      },
+      {
+        "id": "masjid-al-haramain-sosok-misterius",
+        "type": "sosok-misterius",
+        "label": "Sosok Bayangan di Selasar Kaca",
+        "image": "/images/school/masjid-al-haramain/masjid-al-haramain-anomali-sosok-misterius.jpg",
+        "x": 76,
+        "y": 44,
+        "w": 4,
+        "h": 12
+      },
+      {
+        "id": "masjid-al-haramain-siswa-bolos",
+        "type": "siswa-bolos",
+        "label": "Siswa Mengintip di Samping Pilar Kiri",
+        "image": "/images/school/masjid-al-haramain/masjid-al-haramain-anomali-siswa-bolos.jpg",
+        "x": 19,
+        "y": 68,
+        "w": 7,
+        "h": 15
+      }
+    ]
+  }
+]

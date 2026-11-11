@@ -3,30 +3,36 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import confetti from 'canvas-confetti'
 import {
+  AlertTriangle,
   ArrowLeft,
   Camera,
+  CheckCircle2,
   Clock,
   Compass,
   Map,
   RotateCcw,
+  Shield,
+  ShieldAlert,
   Sparkles,
   Trophy,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { CampusMap } from '@/components/game/campus-map'
-import { CctvFeed, type ActiveStudent } from '@/components/game/cctv-feed'
+import { CctvFeed } from '@/components/game/cctv-feed'
 import { LobbyScreen } from '@/components/game/lobby-screen'
 import {
   LOCATIONS,
   DEFAULT_LEADERBOARD,
   LEADERBOARD_STORAGE_KEY,
   formatTime,
+  type ActiveAnomaly,
+  type AnomalyType,
   type CampusLocation,
   type LeaderboardEntry,
 } from '@/lib/game-data'
 import { useGameAudio } from '@/hooks/use-game-audio'
 
-const GAME_LENGTH = 180 // 3 minutes = 180 seconds
+const GAME_LENGTH = 300 // 5 minutes = 300 seconds
 
 type Screen = 'lobby' | 'map' | 'game' | 'results'
 
@@ -38,12 +44,12 @@ export function CctvPatrolGame() {
   const [playerName, setPlayerName] = useState('')
   const [leaderboard, setLeaderboard] = useState(DEFAULT_LEADERBOARD)
   const [score, setScore] = useState(0)
-  const [caught, setCaught] = useState(0)
+  const [resolvedCount, setResolvedCount] = useState(0)
   const [timeLeft, setTimeLeft] = useState(GAME_LENGTH)
-  const [activeStudent, setActiveStudent] = useState<ActiveStudent | null>(null)
+  const [activeAnomalies, setActiveAnomalies] = useState<ActiveAnomaly[]>([])
 
   const saveResultRef = useRef(false)
-  const studentCounterRef = useRef(0)
+  const counterRef = useRef(0)
   const { play } = useGameAudio()
   const location = LOCATIONS[locationIndex]
 
@@ -71,7 +77,7 @@ export function CctvPatrolGame() {
     }
   }, [])
 
-  // Timer countdown (3 Minutes)
+  // Timer countdown (5 Minutes = 300s)
   useEffect(() => {
     if (screen !== 'game' || mapOpen) return
     const interval = window.setInterval(() => {
@@ -87,307 +93,402 @@ export function CctvPatrolGame() {
     }
   }, [screen, timeLeft])
 
-  // Spawn sneaky students realistically across the 7 locations
+  // Anomaly Spawner: observation duty style across the school cameras
   useEffect(() => {
     if (screen !== 'game' || mapOpen) return
 
-    const spawnStudent = () => {
-      const randomLoc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)]
-      const randomSpot =
-        randomLoc.hidingSpots[Math.floor(Math.random() * randomLoc.hidingSpots.length)]
+    const spawnAnomaly = () => {
+      setActiveAnomalies((curr) => {
+        // Limit max active anomalies at once to 4
+        if (curr.length >= 4) return curr
 
-      studentCounterRef.current += 1
-      const student: ActiveStudent = {
-        id: studentCounterRef.current,
-        locationId: randomLoc.id,
-        spot: randomSpot,
-        spawnTime: Date.now(),
-      }
+        // Find locations without an active anomaly
+        const occupiedLocIds = new Set(curr.map((a) => a.locationId))
+        const eligibleLocations = LOCATIONS.filter(
+          (loc) => !occupiedLocIds.has(loc.id) && loc.anomalies.length > 0
+        )
 
-      setActiveStudent(student)
+        if (eligibleLocations.length === 0) return curr
 
-      // Student hides for 7-12 seconds before sneaking to another spot
-      const hideDuration = 7000 + Math.random() * 5000
-      window.setTimeout(() => {
-        setActiveStudent((curr) => (curr?.id === student.id ? null : curr))
-      }, hideDuration)
-    }
+        // Pick random location and random anomaly
+        const targetLoc = eligibleLocations[Math.floor(Math.random() * eligibleLocations.length)]
+        const randomAnom = targetLoc.anomalies[Math.floor(Math.random() * targetLoc.anomalies.length)]
 
-    if (!activeStudent) {
-      const initialTimer = window.setTimeout(spawnStudent, 1000)
-      return () => window.clearTimeout(initialTimer)
-    }
+        counterRef.current += 1
+        const newActive: ActiveAnomaly = {
+          id: `active-${counterRef.current}-${randomAnom.id}`,
+          locationId: targetLoc.id,
+          anomaly: randomAnom,
+          spawnedAt: Date.now(),
+        }
 
-    const loopInterval = window.setInterval(() => {
-      if (!activeStudent) {
-        spawnStudent()
-      }
-    }, 3000)
-
-    return () => window.clearInterval(loopInterval)
-  }, [screen, mapOpen, activeStudent])
-
-  // Save score and trigger celebration
-  useEffect(() => {
-    if (screen !== 'results' || saveResultRef.current) return
-    saveResultRef.current = true
-    play('gameOver')
-
-    const newEntry: LeaderboardEntry = {
-      name: playerName.trim() || 'Petugas',
-      score,
-      date: new Date().toLocaleDateString('id-ID'),
-    }
-
-    const updated = [...leaderboard, newEntry]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
-
-    setLeaderboard(updated)
-    try {
-      window.localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(updated))
-    } catch {
-      // storage fallback
-    }
-
-    if (score > 0) {
-      confetti({
-        particleCount: 130,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#4ade80', '#facc15', '#38bdf8', '#f87171'],
+        return [...curr, newActive]
       })
     }
-  }, [screen, leaderboard, playerName, score, play])
 
-  // Keyboard navigation
+    // Spawn first anomaly after 5 seconds, then every 16-24 seconds
+    const intervalTime = 16000 + Math.random() * 8000
+    const timer = window.setInterval(spawnAnomaly, intervalTime)
+    
+    // First spawn quick start
+    const initialTimer = window.setTimeout(spawnAnomaly, 4000)
+
+    return () => {
+      window.clearInterval(timer)
+      window.clearTimeout(initialTimer)
+    }
+  }, [screen, mapOpen])
+
+  // Audio cues on critical threat
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLElement &&
-        ['INPUT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)
-      ) {
-        return
+    if (screen === 'game' && activeAnomalies.length >= 3) {
+      play('siren')
+    }
+  }, [activeAnomalies.length, screen, play])
+
+  // Results Screen: Save High Score and Trigger Confetti
+  useEffect(() => {
+    if (screen === 'results' && !saveResultRef.current) {
+      saveResultRef.current = true
+      play('gameOver')
+
+      const finalName = playerName.trim() || 'Petugas Patroli'
+      const newEntry: LeaderboardEntry = {
+        name: finalName,
+        score,
+        date: new Date().toLocaleDateString('id-ID'),
       }
 
-      if (screen === 'game') {
-        if (e.key.toLowerCase() === 'm') {
-          e.preventDefault()
-          setMapOpen((open) => !open)
-          return
+      setLeaderboard((prev) => {
+        const merged = [...prev, newEntry]
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3)
+
+        try {
+          window.localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(merged))
+        } catch {
+          // ignore storage error
         }
-        if (mapOpen && e.key === 'Escape') {
-          setMapOpen(false)
-          return
+        return merged
+      })
+
+      if (score >= 450) {
+        try {
+          void confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 },
+          })
+        } catch {
+          // confetti fallback
         }
-        if (!mapOpen) {
-          if (e.key === 'ArrowLeft') {
-            e.preventDefault()
-            switchCamera(-1)
-          } else if (e.key === 'ArrowRight') {
-            e.preventDefault()
-            switchCamera(1)
-          }
-        }
+      }
+    }
+  }, [screen, score, playerName, play])
+
+  // Camera Navigation
+  const handlePrevCamera = useCallback(() => {
+    play('camera')
+    setLocationIndex((prev) => (prev - 1 + LOCATIONS.length) % LOCATIONS.length)
+    setCurrentAngleIndex(0)
+  }, [play])
+
+  const handleNextCamera = useCallback(() => {
+    play('camera')
+    setLocationIndex((prev) => (prev + 1) % LOCATIONS.length)
+    setCurrentAngleIndex(0)
+  }, [play])
+
+  // Keyboard navigation shortcuts
+  useEffect(() => {
+    if (screen !== 'game') return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
+        e.preventDefault()
+        handlePrevCamera()
+      } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
+        e.preventDefault()
+        handleNextCamera()
+      } else if (e.key.toLowerCase() === 'm') {
+        e.preventDefault()
+        setMapOpen((curr) => !curr)
+        play('beep')
+      } else if (e.key === 'Escape') {
+        setMapOpen(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [screen, mapOpen])
+  }, [screen, handlePrevCamera, handleNextCamera, play])
 
-  // Actions
-  const handleStart = useCallback(() => {
+  // Anomaly Verification Handler
+  const handleReportAnomaly = useCallback(
+    (type: AnomalyType, clickX: number, clickY: number): boolean => {
+      // Find active anomaly in current room
+      const matchIndex = activeAnomalies.findIndex((a) => a.locationId === location.id)
+      if (matchIndex === -1) {
+        play('buzzer')
+        return false
+      }
+
+      const currentTarget = activeAnomalies[matchIndex]
+      const anom = currentTarget.anomaly
+
+      // Verify Category Match
+      if (anom.type !== type) {
+        play('buzzer')
+        return false
+      }
+
+      // Check distance from click to anomaly center with tolerance (within 24% radius or within bounding box)
+      const dist = Math.hypot(clickX - anom.x, clickY - anom.y)
+      const inBox =
+        clickX >= anom.x - anom.w &&
+        clickX <= anom.x + anom.w &&
+        clickY >= anom.y - anom.h &&
+        clickY <= anom.y + anom.h
+
+      if (dist > 25 && !inBox && (clickX !== 50 || clickY !== 50)) {
+        play('buzzer')
+        return false
+      }
+
+      // MATCH VERIFIED!
+      play('verified')
+      setActiveAnomalies((curr) => curr.filter((_, idx) => idx !== matchIndex))
+      setScore((prev) => prev + 150)
+      setResolvedCount((prev) => prev + 1)
+      return true
+    },
+    [activeAnomalies, location.id, play]
+  )
+
+  // Start new game session
+  const handleStartGame = () => {
     saveResultRef.current = false
     setScore(0)
-    setCaught(0)
+    setResolvedCount(0)
     setTimeLeft(GAME_LENGTH)
-    setActiveStudent(null)
-    setCurrentAngleIndex(0)
-    play('camera')
-    setScreen('map')
-  }, [play])
-
-  const handleSelectLocation = useCallback(
-    (selectedLocation: CampusLocation) => {
-      const idx = LOCATIONS.findIndex((loc) => loc.id === selectedLocation.id)
-      if (idx !== -1) {
-        setLocationIndex(idx)
-        setCurrentAngleIndex(0)
-      }
-      play('camera')
-      setScreen('game')
-      setMapOpen(false)
-    },
-    [play]
-  )
-
-  const switchCamera = useCallback(
-    (delta: number) => {
-      setLocationIndex((curr) => {
-        const next = (curr + delta + LOCATIONS.length) % LOCATIONS.length
-        return next
-      })
-      setCurrentAngleIndex(0)
-      play('camera')
-    },
-    [play]
-  )
-
-  const handleCatchStudent = useCallback(
-    (student: ActiveStudent) => {
-      setScore((s) => s + 100)
-      setCaught((c) => c + 1)
-      setActiveStudent(null)
-      play('catch')
-    },
-    [play]
-  )
-
-  const handleMissClick = useCallback(() => {
-    play('beep')
-  }, [play])
-
-  const returnToLobby = useCallback(() => {
-    setScreen('lobby')
+    setActiveAnomalies([])
     setMapOpen(false)
-    setActiveStudent(null)
-  }, [])
-
-  // 1. Lobby Screen
-  if (screen === 'lobby') {
-    return (
-      <LobbyScreen
-        leaderboard={leaderboard}
-        playerName={playerName}
-        onPlayerNameChange={setPlayerName}
-        onStart={handleStart}
-      />
-    )
+    setLocationIndex(0)
+    setCurrentAngleIndex(0)
+    setScreen('game')
+    play('camera')
   }
 
-  // 2. Initial Map Spawn Selection
-  if (screen === 'map') {
-    return <CampusMap onSelect={handleSelectLocation} />
-  }
+  // Active Anomaly in current room (if any)
+  const currentRoomAnomaly = activeAnomalies.find((a) => a.locationId === location.id) || null
 
-  // 3. Results Screen
-  if (screen === 'results') {
-    return (
-      <main className="modern-result-shell">
-        <motion.div
-          className="modern-result-card"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35 }}
-        >
-          <div className="result-header-badge">
-            <Trophy className="w-8 h-8 text-amber-400" />
-            <span>WAKTU HABIS!</span>
-          </div>
-
-          <h1 className="result-player-title">
-            Hebat, {playerName.trim() || 'Pemain'}!
-          </h1>
-          <p className="result-desc">
-            Kamu telah menjaga CCTV sekolah selama 3 menit penuh.
-          </p>
-
-          <div className="result-score-box">
-            <div className="score-stat-box">
-              <span className="box-label">TOTAL SKOR</span>
-              <strong className="box-val text-emerald-400">{score} PTS</strong>
-            </div>
-            <div className="score-stat-box">
-              <span className="box-label">SISWA TERTANGKAP</span>
-              <strong className="box-val text-amber-400">{caught} ORANG</strong>
-            </div>
-          </div>
-
-          <div className="result-actions-row">
-            <button className="result-btn-playagain" onClick={handleStart}>
-              <RotateCcw className="w-5 h-5" />
-              <span>MAIN LAGI</span>
-            </button>
-            <button className="result-btn-home" onClick={returnToLobby}>
-              <ArrowLeft className="w-5 h-5" />
-              <span>MENU UTAMA</span>
-            </button>
-          </div>
-        </motion.div>
-      </main>
-    )
-  }
-
-  // 4. CCTV Patrol Game View
   return (
-    <main className="modern-game-layout">
-      {/* Top HUD Bar */}
-      <header className="modern-game-hud">
-        {/* Left: Open Map Button */}
-        <button
-          className="hud-map-btn"
-          onClick={() => setMapOpen(true)}
-          title="Buka Denah Peta (Tekan M)"
-        >
-          <Map className="w-5 h-5 text-emerald-400" />
-          <span>LIHAT PETA</span>
-          <kbd className="hud-kbd">M</kbd>
-        </button>
-
-        {/* Center: Camera Name & Location */}
-        <div className="hud-center-title">
-          <Camera className="w-5 h-5 text-emerald-400" />
-          <span className="hud-cam-title">
-            CAM {location.camera} • {location.name}
-          </span>
-        </div>
-
-        {/* Right: Score & 3-Minute Countdown Timer */}
-        <div className="hud-right-stats">
-          <div className="hud-score-badge">
-            <span className="hud-stat-label">SKOR:</span>
-            <strong className="hud-stat-num">{score}</strong>
-          </div>
-          <div className={`hud-timer-badge ${timeLeft <= 30 ? 'hud-timer-urgent' : ''}`}>
-            <Clock className="w-4 h-4 text-emerald-400" />
-            <strong className="hud-timer-num">{formatTime(timeLeft)}</strong>
-          </div>
-        </div>
-      </header>
-
-      {/* Main CCTV Monitor Area */}
-      <section className="modern-monitor-container">
-        <CctvFeed
-          location={location}
-          playerName={playerName.trim()}
-          activeStudent={activeStudent}
-          currentAngleIndex={currentAngleIndex}
-          onAngleChange={setCurrentAngleIndex}
-          onPrevCamera={() => switchCamera(-1)}
-          onNextCamera={() => switchCamera(1)}
-          onCatch={handleCatchStudent}
-          onMiss={handleMissClick}
+    <div className="modern-game-viewport">
+      {screen === 'lobby' && (
+        <LobbyScreen
+          leaderboard={leaderboard}
+          playerName={playerName}
+          onPlayerNameChange={setPlayerName}
+          onStart={handleStartGame}
         />
-      </section>
+      )}
 
-      {/* Simple Bottom Guide */}
-      <footer className="modern-bottom-bar">
-        <span>⌨️ Tekan <b>←</b> dan <b>→</b> di keyboard untuk ganti kamera</span>
-        <span>🔍 Perhatikan sudut gambar dan klik pembolos untuk menangkap!</span>
-      </footer>
+      {screen === 'game' && (
+        <main className="modern-cctv-workspace">
+          {/* Top Surveillance Control Bar */}
+          <header className="modern-cctv-header">
+            {/* Left: Map Button */}
+            <div className="header-left-group">
+              <button
+                type="button"
+                className="header-action-btn"
+                onClick={() => {
+                  setMapOpen(true)
+                  play('beep')
+                }}
+                title="Buka Peta Sekolah (M)"
+              >
+                <Map className="w-4 h-4 text-emerald-400" />
+                <span className="btn-label">PETA KAMPUS (M)</span>
+              </button>
 
-      {/* Map Overlay Modal */}
-      <AnimatePresence>
-        {mapOpen && (
-          <CampusMap
-            isOverlay
-            currentLocationId={location.id}
-            onClose={() => setMapOpen(false)}
-            onSelect={handleSelectLocation}
-          />
-        )}
-      </AnimatePresence>
-    </main>
+              {/* Status Threat Indicator */}
+              <div
+                className={`threat-status-badge ${
+                  activeAnomalies.length >= 3
+                    ? 'threat-danger'
+                    : activeAnomalies.length > 0
+                    ? 'threat-warning'
+                    : 'threat-calm'
+                }`}
+              >
+                {activeAnomalies.length >= 3 ? (
+                  <>
+                    <ShieldAlert className="w-4 h-4 text-rose-400 animate-bounce" />
+                    <span>STATUS: KRITIS ({activeAnomalies.length} ANOMALI)</span>
+                  </>
+                ) : activeAnomalies.length > 0 ? (
+                  <>
+                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                    <span>STATUS: WASPADA ({activeAnomalies.length} AKTIF)</span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-4 h-4 text-emerald-400" />
+                    <span>STATUS: AMAN</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Center: Camera Quick Switcher */}
+            <div className="header-center-nav">
+              <button
+                type="button"
+                className="header-nav-arrow"
+                onClick={handlePrevCamera}
+                title="Kamera Sebelumnya (A / Panah Kiri)"
+              >
+                ◀
+              </button>
+              <div className="header-cam-title">
+                <span className="header-cam-no">CAM-{location.camera}</span>
+                <span className="header-cam-name">{location.name}</span>
+              </div>
+              <button
+                type="button"
+                className="header-nav-arrow"
+                onClick={handleNextCamera}
+                title="Kamera Berikutnya (D / Panah Kanan)"
+              >
+                ▶
+              </button>
+            </div>
+
+            {/* Right: Timer & Score */}
+            <div className="header-right-group">
+              <div className="stat-pill-clock">
+                <Clock className="w-4 h-4 text-emerald-400" />
+                <span className="stat-value-clock">{formatTime(timeLeft)}</span>
+              </div>
+              <div className="stat-pill-score">
+                <Trophy className="w-4 h-4 text-amber-300" />
+                <span className="stat-value-score">{score}</span>
+                <span className="stat-label">PTS</span>
+              </div>
+            </div>
+          </header>
+
+          {/* Central Surveillance Feed */}
+          <section className="modern-cctv-body">
+            <CctvFeed
+              location={location}
+              playerName={playerName}
+              activeAnomaly={currentRoomAnomaly}
+              currentAngleIndex={currentAngleIndex}
+              onAngleChange={setCurrentAngleIndex}
+              onPrevCamera={handlePrevCamera}
+              onNextCamera={handleNextCamera}
+              onReportAnomaly={handleReportAnomaly}
+            />
+          </section>
+
+          {/* Fullscreen Campus Map Overlay */}
+          <AnimatePresence>
+            {mapOpen && (
+              <CampusMap
+                isOverlay
+                currentLocationId={location.id}
+                onSelect={(loc) => {
+                  const idx = LOCATIONS.findIndex((l) => l.id === loc.id)
+                  if (idx !== -1) {
+                    setLocationIndex(idx)
+                    setCurrentAngleIndex(0)
+                  }
+                  setMapOpen(false)
+                  play('camera')
+                }}
+                onClose={() => {
+                  setMapOpen(false)
+                  play('beep')
+                }}
+              />
+            )}
+          </AnimatePresence>
+        </main>
+      )}
+
+      {/* Results / Game Over Screen */}
+      {screen === 'results' && (
+        <main className="modern-results-screen">
+          <motion.div
+            className="results-card-container"
+            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            <div className="results-header-tag">
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>PATROLI 5 MENIT SELESAI</span>
+            </div>
+
+            <h1 className="results-hero-title">HASIL PATROLI CCTV</h1>
+            <p className="results-hero-sub">
+              Terima kasih <strong>{playerName || 'Petugas'}</strong> telah menjaga keamanan sekolah dari anomali dan siswa bolos!
+            </p>
+
+            <div className="results-stat-grid">
+              <div className="result-metric-card">
+                <div className="metric-label">TOTAL SKOR</div>
+                <div className="metric-value metric-gold">{score}</div>
+              </div>
+              <div className="result-metric-card">
+                <div className="metric-label">ANOMALI DIBERSIHKAN</div>
+                <div className="metric-value metric-emerald">{resolvedCount}</div>
+              </div>
+            </div>
+
+            {/* Top 3 Hall of Fame */}
+            <div className="results-leaderboard-box">
+              <div className="box-title">
+                <Trophy className="w-4 h-4 text-amber-300" />
+                <span>TOP 3 SKOR TERTINGGI</span>
+              </div>
+              <div className="box-entries">
+                {leaderboard.map((entry, index) => (
+                  <div key={index} className="leaderboard-entry-row">
+                    <span className="entry-rank">#{index + 1}</span>
+                    <span className="entry-name">{entry.name}</span>
+                    <span className="entry-score">{entry.score} pts</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="results-cta-group">
+              <button
+                type="button"
+                className="btn-play-again"
+                onClick={handleStartGame}
+              >
+                <RotateCcw className="w-5 h-5" />
+                <span>PATROLI LAGI (5 MENIT)</span>
+              </button>
+              <button
+                type="button"
+                className="btn-back-lobby"
+                onClick={() => setScreen('lobby')}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>KEMBALI KE LOBBY</span>
+              </button>
+            </div>
+          </motion.div>
+        </main>
+      )}
+    </div>
   )
 }

@@ -1,9 +1,9 @@
 'use client'
 
 import { FormEvent, useState } from 'react'
-import { Camera, Play, Sparkles, Trophy, Users } from 'lucide-react'
+import { Camera, Play, Sparkles, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
-import type { LeaderboardEntry } from '@/lib/game-data'
+import { ANOMALY_CATEGORIES, type LeaderboardEntry } from '@/lib/game-data'
 import { PatrolMascot } from './mascot'
 
 type LobbyScreenProps = {
@@ -44,7 +44,7 @@ export function LobbyScreen({
           <span>CCTV PATROL SEKOLAH</span>
         </div>
         <div className="arcade-live-badge">
-          <span className="live-dot" /> 7 CCTV ONLINE
+          <span className="live-dot" /> 7 CCTV AKTIF • 5 MENIT
         </div>
       </header>
 
@@ -60,7 +60,7 @@ export function LobbyScreen({
           {/* Badge */}
           <div className="game-category-tag">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>GAME KETELITIAN MATA</span>
+            <span>GAME KETELITIAN MATA & ANOMALI</span>
           </div>
 
           {/* Big Fun Title */}
@@ -68,8 +68,18 @@ export function LobbyScreen({
             RAZIA <span className="title-highlight">PEMBOLOS!</span>
           </h1>
           <p className="arcade-subtitle">
-            Cari dan tangkap anak-anak yang suka bolos dan ngumpet di CCTV sekolah sebelum waktu 3 menit habis!
+            Pantau CCTV sekolah selama <strong>5 menit</strong>! Perhatikan jika ada perubahan ganjil pada gambar dan laporkan kejadiannya.
           </p>
+
+          {/* 4 Anomaly Categories Quick Guide */}
+          <div className="anomaly-guide-pills">
+            {ANOMALY_CATEGORIES.map((cat) => (
+              <div key={cat.type} className="anomaly-pill">
+                <span className="pill-icon">{cat.icon}</span>
+                <span className="pill-text">{cat.label}</span>
+              </div>
+            ))}
+          </div>
 
           {/* Player Name Form */}
           <form className="arcade-form" onSubmit={handleSubmit}>
@@ -98,11 +108,11 @@ export function LobbyScreen({
             {/* Big Action Button */}
             <button type="submit" className="arcade-play-btn">
               <Play className="w-6 h-6 fill-current" />
-              <span>MULAI MAIN!</span>
+              <span>MULAI PATROLI (5 MENIT)</span>
             </button>
           </form>
 
-          {/* Top 3 High Scores Card (Clean & Simple) */}
+          {/* Top 3 High Scores Card */}
           <div className="arcade-leaderboard-card">
             <div className="leaderboard-header">
               <Trophy className="w-4 h-4 text-amber-400" />
@@ -115,7 +125,9 @@ export function LobbyScreen({
                   <div key={idx} className={`leaderboard-slot slot-${idx + 1}`}>
                     <span className="slot-medal">{medals[idx]}</span>
                     <span className="slot-name">{entry.name}</span>
-                    <span className="slot-score">{entry.score} <small>PTS</small></span>
+                    <span className="slot-score">
+                      {entry.score} <small>PTS</small>
+                    </span>
                   </div>
                 )
               })}
@@ -123,7 +135,7 @@ export function LobbyScreen({
           </div>
         </motion.div>
 
-        {/* Right Side: The Arrogant Truant Mascot */}
+        {/* Right Side: Truant Student Mascot */}
         <motion.div
           className="arcade-card arcade-mascot-card"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -140,7 +152,7 @@ export function LobbyScreen({
           </div>
 
           <div className="mascot-card-footer">
-            <p>Dia suka ngumpet di tempat tersembunyi. Pasang matamu baik-baik!</p>
+            <p>Dia dan barang-barang anomali bersembunyi di CCTV. Temukan dan laporkan sebelum bel berbunyi!</p>
           </div>
         </motion.div>
       </div>
