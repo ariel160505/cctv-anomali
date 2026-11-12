@@ -27,6 +27,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { LobbyScreen } from '@/components/game/lobby-screen'
 import {
   GAME_LOCATIONS,
+  ALL_CAMERA_ANGLES,
   ANOMALY_REPORT_OPTIONS,
   formatTime,
   type ActiveAnomalyState,
@@ -61,7 +62,6 @@ export function CctvPatrolGame() {
 
   const { isMuted, toggleMute, startBgm, playSfx } = useGameAudio()
   const counterRef = useRef(0)
-  const clockRef = useRef('--:--:--')
   const [liveClock, setLiveClock] = useState('--:--:--')
 
   const currentLocation = GAME_LOCATIONS[locationIndex]
@@ -78,7 +78,6 @@ export function CctvPatrolGame() {
         hour12: false,
       }).format(now)
       setLiveClock(formatted)
-      clockRef.current = formatted
     }
     update()
     const timer = setInterval(update, 1000)
@@ -115,7 +114,7 @@ export function CctvPatrolGame() {
     }
   }, [screen, lives, playSfx])
 
-  // Periodic Anomaly Spawner
+  // Periodic Anomaly Spawner across the 6 locations
   useEffect(() => {
     if (screen !== 'game' || isPaused) return
 
@@ -123,7 +122,6 @@ export function CctvPatrolGame() {
       setActiveAnomalies((curr) => {
         if (curr.length >= 3) return curr
 
-        // Find available locations without active anomaly
         const occupiedLocIds = new Set(curr.map((a) => a.locationId))
         const eligibleLocations = GAME_LOCATIONS.filter(
           (loc) => !occupiedLocIds.has(loc.id) && loc.anomalies.length > 0
@@ -148,7 +146,6 @@ export function CctvPatrolGame() {
       })
     }
 
-    // First spawn after 6s, then every 22-30 seconds
     const intervalTimer = setInterval(spawnAnomaly, 24000)
     const initialTimer = setTimeout(spawnAnomaly, 5000)
 
@@ -158,58 +155,65 @@ export function CctvPatrolGame() {
     }
   }, [screen, isPaused])
 
-  // Handle Location Switch
+  // Direct switch to specific room (from bottom cards)
   const switchLocation = useCallback(
     (index: number) => {
       playSfx('camera')
       setScreenGlitch(true)
       setLocationIndex(index)
       setAngleIndex(0)
-      setTimeout(() => setScreenGlitch(false), 180)
+      setTimeout(() => setScreenGlitch(false), 140)
     },
     [playSfx]
   )
 
-  const handlePrevLocation = useCallback(() => {
-    switchLocation((locationIndex - 1 + GAME_LOCATIONS.length) % GAME_LOCATIONS.length)
-  }, [locationIndex, switchLocation])
-
-  const handleNextLocation = useCallback(() => {
-    switchLocation((locationIndex + 1) % GAME_LOCATIONS.length)
-  }, [locationIndex, switchLocation])
-
-  // Switch angle within current room
+  // Direct switch to specific angle (from header tabs)
   const switchAngle = useCallback(
     (newAngle: number) => {
       playSfx('camera')
       setScreenGlitch(true)
       setAngleIndex(newAngle)
-      setTimeout(() => setScreenGlitch(false), 150)
+      setTimeout(() => setScreenGlitch(false), 140)
     },
     [playSfx]
   )
 
-  // Keyboard navigation for desktop computers
+  // Sequential navigation through EVERY angle across EVERY room continuously!
+  const navigateCctv = useCallback(
+    (direction: 'next' | 'prev') => {
+      playSfx('camera')
+      setScreenGlitch(true)
+
+      const currentIdx = ALL_CAMERA_ANGLES.findIndex(
+        (cam) => cam.locationIndex === locationIndex && cam.angleIndex === angleIndex
+      )
+      const validCurrentIdx = currentIdx >= 0 ? currentIdx : 0
+
+      const nextGlobalIdx =
+        direction === 'next'
+          ? (validCurrentIdx + 1) % ALL_CAMERA_ANGLES.length
+          : (validCurrentIdx - 1 + ALL_CAMERA_ANGLES.length) % ALL_CAMERA_ANGLES.length
+
+      const targetCam = ALL_CAMERA_ANGLES[nextGlobalIdx]
+      setLocationIndex(targetCam.locationIndex)
+      setAngleIndex(targetCam.angleIndex)
+
+      setTimeout(() => setScreenGlitch(false), 140)
+    },
+    [locationIndex, angleIndex, playSfx]
+  )
+
+  // Keyboard navigation for desktop computers (Arrow Left/Right steps through all angles)
   useEffect(() => {
     if (screen !== 'game') return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
         e.preventDefault()
-        handlePrevLocation()
+        navigateCctv('prev')
       } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
         e.preventDefault()
-        handleNextLocation()
-      } else if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') {
-        e.preventDefault()
-        if (currentLocation.angles.length > 1) {
-          switchAngle((angleIndex + 1) % currentLocation.angles.length)
-        }
-      } else if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') {
-        e.preventDefault()
-        if (currentLocation.angles.length > 1) {
-          switchAngle((angleIndex - 1 + currentLocation.angles.length) % currentLocation.angles.length)
-        }
+        navigateCctv('next')
       } else if (e.key.toLowerCase() === 'r' || e.key === ' ') {
         e.preventDefault()
         setReportModalOpen(true)
@@ -225,15 +229,7 @@ export function CctvPatrolGame() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [
-    screen,
-    handlePrevLocation,
-    handleNextLocation,
-    currentLocation.angles.length,
-    angleIndex,
-    switchAngle,
-    reportModalOpen,
-  ])
+  }, [screen, navigateCctv, reportModalOpen])
 
   // Start new game session
   const handleStartGame = () => {
@@ -273,7 +269,7 @@ export function CctvPatrolGame() {
     const targetAnomalyState = activeAnomalies[matchIdx]
     const anom = targetAnomalyState.anomaly
 
-    // Check if category matches if provided
+    // Check category match if provided
     if (chosenType && anom.type !== 'anomali' && anom.type !== chosenType) {
       // WRONG CATEGORY GUESS -> Lose 1 life!
       setLives((prev) => Math.max(0, prev - 1))
@@ -287,10 +283,7 @@ export function CctvPatrolGame() {
     }
 
     // SPECIAL USER MECHANIC FOR KEBUN ANOMALY:
-    // "KBN1-anomali sosok awal pas pemain lapor sistem ga bisa lapor dan tampilannya bergetarrr.jpg"
-    // "KBN1-anomali sosok setelah muncul anomali sosok pertama pas user klik lapor.jpg"
     if (anom.isSpecialTwoStage && targetAnomalyState.currentStage === 1) {
-      // Screen shakes violently! System error! Morphs into terrifying close-up!
       playSfx('jumpscare')
       setIsScreenShaking(true)
       setJumpscareAlert('⚠️ SISTEM ERROR! ENTITAS MENOLAK LAPORAN & MENDEKAT!')
@@ -348,7 +341,7 @@ export function CctvPatrolGame() {
         />
       )}
 
-      {/* 2. SURVEILLANCE GAME SCREEN */}
+      {/* 2. SURVEILLANCE GAME SCREEN (FULL SCREEN 100%) */}
       {screen === 'game' && (
         <main className="game-desktop-workspace">
           {/* Top Surveillance Header Bar */}
@@ -369,7 +362,7 @@ export function CctvPatrolGame() {
               </button>
             </div>
 
-            {/* Center: Current Room Location Title */}
+            {/* Center: Current Room Location Title & Angle Tabs */}
             <div className="hud-location-header">
               <div className="location-cam-pill">CAM-{currentLocation.camNumber}</div>
               <h1 className="location-title-text">{currentLocation.name}</h1>
@@ -425,7 +418,7 @@ export function CctvPatrolGame() {
             </div>
           </header>
 
-          {/* Central Surveillance Monitor Container */}
+          {/* Central Surveillance Monitor Container (100% Width & Height Fill) */}
           <section className="game-monitor-stage-wrap">
             <div
               className={`game-cctv-monitor ${screenGlitch ? 'cctv-glitch-active' : ''}`}
@@ -433,14 +426,14 @@ export function CctvPatrolGame() {
               role="group"
               aria-label={`Feed CCTV ${currentLocation.name}`}
             >
-              {/* CCTV Feed Photo Image */}
+              {/* CCTV Feed Photo Image - 100% Full View */}
               <div className="cctv-photo-wrapper">
                 <Image
                   src={activeImage}
                   alt={`Feed CCTV ${currentLocation.name}`}
                   fill
                   priority
-                  sizes="(max-width: 1400px) 100vw, 1300px"
+                  sizes="100vw"
                   className="cctv-photo"
                 />
               </div>
@@ -464,15 +457,15 @@ export function CctvPatrolGame() {
                 <span className="rec-text">REC • LIVE 30FPS</span>
               </div>
 
-              {/* Left / Right Camera Switch Floating Arrows */}
+              {/* Left / Right Camera Switch Floating Arrows (Steps through ALL angles sequentially!) */}
               <button
                 type="button"
                 className="cctv-edge-arrow arrow-prev"
                 onClick={(e) => {
                   e.stopPropagation()
-                  handlePrevLocation()
+                  navigateCctv('prev')
                 }}
-                title="Kamera Sebelumnya (Panah Kiri / A)"
+                title="Sudut / Kamera Sebelumnya (Panah Kiri / A)"
               >
                 ◀
               </button>
@@ -482,9 +475,9 @@ export function CctvPatrolGame() {
                 className="cctv-edge-arrow arrow-next"
                 onClick={(e) => {
                   e.stopPropagation()
-                  handleNextLocation()
+                  navigateCctv('next')
                 }}
-                title="Kamera Berikutnya (Panah Kanan / D)"
+                title="Sudut / Kamera Berikutnya (Panah Kanan / D)"
               >
                 ▶
               </button>
@@ -530,27 +523,22 @@ export function CctvPatrolGame() {
             </div>
           </section>
 
-          {/* Bottom Grid: 6 Location Rectangles */}
+          {/* Bottom Grid: 6 Clean Location Rectangles (NO RED SPOILERS!) */}
           <footer className="game-bottom-location-grid">
             {GAME_LOCATIONS.map((loc, idx) => {
               const isCurrent = locationIndex === idx
-              const hasAnomaly = activeAnomalies.some((a) => a.locationId === loc.id)
 
               return (
                 <button
                   key={loc.id}
                   type="button"
-                  className={`location-card-box ${isCurrent ? 'card-active-view' : ''} ${
-                    hasAnomaly ? 'card-has-anomaly' : ''
-                  }`}
+                  className={`location-card-box ${isCurrent ? 'card-active-view' : ''}`}
                   onClick={() => switchLocation(idx)}
                   title={`Pantau ${loc.name}`}
                 >
                   <div className="card-top-row">
                     <span className="card-cam-no">CAM-0{idx + 1}</span>
-                    {hasAnomaly && (
-                      <span className="card-alert-dot" title="Aktivitas Anomali Terdeteksi!" />
-                    )}
+                    <span className="card-cam-dot" />
                   </div>
                   <div className="card-loc-name">{loc.name}</div>
                   <div className="card-loc-sub">

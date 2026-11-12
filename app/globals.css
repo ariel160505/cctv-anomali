@@ -23,13 +23,17 @@
   padding: 0;
 }
 
+html,
 body {
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
   background-color: var(--bg-dark);
   color: #f1f5f9;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
   user-select: none;
 }
 
@@ -37,13 +41,15 @@ body {
    1. HORROR CCTV AQIS: LOBBY SCREEN (AUTHENTIC CRT MONITOR)
    ========================================================================== */
 .horror-lobby-shell {
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
+  width: 100vw;
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 20px;
+  padding: 16px 20px 12px;
   background: radial-gradient(circle at 50% 25%, rgba(16, 185, 129, 0.08), transparent 60%), #060907;
   overflow: hidden;
 }
@@ -59,11 +65,12 @@ body {
 }
 
 .lobby-top-bar {
-  width: min(100%, 1100px);
+  width: min(100%, 1200px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .brand-terminal-badge {
@@ -105,10 +112,14 @@ body {
   z-index: 10;
   max-width: 900px;
   width: 100%;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
 }
 
 .lobby-title-wrap {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 .game-sys-tag {
   font: 800 11px var(--font-mono);
@@ -116,7 +127,7 @@ body {
   letter-spacing: 0.16em;
 }
 .horror-main-title {
-  font-size: clamp(38px, 6vw, 64px);
+  font-size: clamp(30px, 4.2vw, 50px);
   font-weight: 900;
   color: #ffffff;
   letter-spacing: 0.08em;
@@ -128,9 +139,9 @@ body {
   text-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
 }
 .horror-tagline {
-  font-size: 14px;
+  font-size: 13px;
   color: #94a3b8;
-  margin-top: 6px;
+  margin-top: 4px;
   font-weight: 500;
 }
 
@@ -139,22 +150,27 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
+  width: 100%;
+  flex-shrink: 1;
+  min-height: 0;
 }
 .crt-monitor-bezel {
-  width: min(88vw, 680px);
+  width: min(84vw, 640px);
+  max-height: min(44vh, 380px);
   aspect-ratio: 16 / 10;
-  padding: 16px;
-  border-radius: 20px;
+  padding: 12px;
+  border-radius: 18px;
   background: #151b17;
   border: 3px solid #28372d;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), inset 0 2px 6px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 2px 6px rgba(255, 255, 255, 0.1);
+  display: flex;
 }
 .crt-screen-viewport {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   background: #000000;
   border: 2px solid #0d140f;
@@ -218,12 +234,13 @@ body {
   text-shadow: 0 1px 3px #000;
 }
 .crt-monitor-stand {
-  width: 140px;
-  height: 16px;
+  width: 120px;
+  height: 12px;
   background: #1c2520;
   border-radius: 0 0 10px 10px;
   border: 2px solid #28372d;
   border-top: none;
+  flex-shrink: 0;
 }
 
 /* Action Box */
@@ -231,21 +248,22 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  width: min(100%, 360px);
+  gap: 10px;
+  width: min(100%, 340px);
+  flex-shrink: 0;
 }
 .btn-play-game {
   width: 100%;
-  height: 56px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-radius: 14px;
+  border-radius: 12px;
   border: none;
   background: var(--brand-green);
   color: #061109;
-  font: 900 16px var(--font-mono);
+  font: 900 15px var(--font-mono);
   letter-spacing: 0.05em;
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
@@ -258,12 +276,12 @@ body {
 }
 .btn-game-guide {
   width: 100%;
-  height: 44px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(18, 28, 21, 0.8);
   color: #cbd5e1;
@@ -277,10 +295,11 @@ body {
   color: #fff;
 }
 .lobby-device-notice {
-  margin-top: 20px;
+  margin-top: 10px;
   font: 700 11px var(--font-mono);
   color: #64748b;
   letter-spacing: 0.05em;
+  flex-shrink: 0;
 }
 
 /* Guide Popup Modal */
@@ -385,25 +404,30 @@ body {
 }
 
 /* ==========================================================================
-   2. DESKTOP SURVEILLANCE WORKSPACE (GAME VIEW)
+   2. DESKTOP SURVEILLANCE WORKSPACE (GAME VIEW - 100% FULLSCREEN)
    ========================================================================== */
 .game-desktop-workspace {
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 10px 16px 8px;
   background: #060907;
 }
 
 .game-top-hud {
   width: 100%;
-  max-width: 1360px;
-  margin: 0 auto 10px;
+  max-width: 100%;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  flex-shrink: 0;
+  height: 40px;
 }
 
 /* Left Pause Button */
@@ -550,35 +574,44 @@ body {
 }
 
 /* ==========================================================================
-   3. CCTV MONITOR STAGE
+   3. CCTV MONITOR STAGE (100% MAXIMUM VIEWPORT EXPANSION)
    ========================================================================== */
 .game-monitor-stage-wrap {
   width: 100%;
-  max-width: 1360px;
+  max-width: 100%;
   margin: 0 auto;
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 4px 0;
 }
 .game-cctv-monitor {
   position: relative;
   width: 100%;
+  height: 100%;
+  max-width: calc((100vh - 142px) * (16 / 9));
   aspect-ratio: 16 / 9;
-  max-height: calc(100vh - 200px);
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 2.5px solid #233426;
+  border: 2px solid #233426;
   background: #000;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.9);
   cursor: crosshair;
 }
 .cctv-photo-wrapper {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
 }
 .cctv-photo {
   object-fit: cover;
+  width: 100% !important;
+  height: 100% !important;
 }
 .cctv-scanlines-layer {
   position: absolute;
@@ -695,19 +728,20 @@ body {
 }
 
 /* ==========================================================================
-   4. BOTTOM LOCATION GRID (6 RECTANGLES)
+   4. BOTTOM LOCATION GRID (6 RECTANGLES - CLEAN WITHOUT SPOILERS)
    ========================================================================== */
 .game-bottom-location-grid {
   width: 100%;
-  max-width: 1360px;
-  margin: 12px auto 0;
+  max-width: 100%;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 .location-card-box {
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
   background: rgba(15, 22, 17, 0.85);
   border: 1.5px solid #233426;
   text-align: left;
@@ -715,25 +749,16 @@ body {
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 .location-card-box:hover {
   background: rgba(34, 197, 94, 0.15);
   border-color: rgba(34, 197, 94, 0.5);
-  transform: translateY(-2px);
 }
 .card-active-view {
   background: rgba(34, 197, 94, 0.2) !important;
   border-color: var(--brand-green) !important;
-  box-shadow: 0 0 16px rgba(34, 197, 94, 0.3);
-}
-.card-has-anomaly {
-  border-color: #ef4444 !important;
-  animation: pulse-card-alert 1.2s infinite;
-}
-@keyframes pulse-card-alert {
-  0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
-  50% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.1); }
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.25);
 }
 .card-top-row {
   display: flex;
@@ -744,13 +769,15 @@ body {
   font: 800 10px var(--font-mono);
   color: var(--brand-green);
 }
-.card-alert-dot {
-  width: 8px;
-  height: 8px;
+.card-cam-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 6px #ef4444;
-  animation: pulse-dot 0.8s infinite;
+  background: rgba(255, 255, 255, 0.2);
+}
+.card-active-view .card-cam-dot {
+  background: var(--brand-green);
+  box-shadow: 0 0 6px var(--brand-green);
 }
 .card-loc-name {
   font: 900 13px var(--font-mono);
