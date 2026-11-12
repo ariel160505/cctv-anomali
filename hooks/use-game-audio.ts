@@ -47,6 +47,19 @@ export function useGameAudio() {
     })
   }, [isMuted])
 
+  const stopBgm = useCallback(() => {
+    if (!bgmRef.current) return
+    bgmRef.current.pause()
+    bgmRef.current.currentTime = 0
+  }, [])
+
+  const stopAllAudio = useCallback(() => {
+    if (bgmRef.current) {
+      bgmRef.current.pause()
+      bgmRef.current.currentTime = 0
+    }
+  }, [])
+
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => {
       const next = !prev
@@ -193,5 +206,5 @@ export function useGameAudio() {
     [isMuted]
   )
 
-  return { isMuted, toggleMute, startBgm, playSfx }
+  return { isMuted, toggleMute, startBgm, stopBgm, stopAllAudio, playSfx }
 }

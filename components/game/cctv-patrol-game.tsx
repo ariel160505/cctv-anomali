@@ -61,8 +61,9 @@ export function CctvPatrolGame() {
   const [screenGlitch, setScreenGlitch] = useState(false)
   const [jumpscareAlert, setJumpscareAlert] = useState<string | null>(null)
   const [reportFeedback, setReportFeedback] = useState<{ success: boolean; text: string } | null>(null)
+  const [reportedAnomalyIds, setReportedAnomalyIds] = useState<string[]>([])
 
-  const { isMuted, toggleMute, startBgm, playSfx } = useGameAudio()
+  const { isMuted, toggleMute, startBgm, stopBgm, stopAllAudio, playSfx } = useGameAudio()
   const counterRef = useRef(0)
   const [liveClock, setLiveClock] = useState('--:--:--')
 
@@ -94,9 +95,10 @@ export function CctvPatrolGame() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
+          stopAllAudio()
           setScreen('victory')
           playSfx('victory')
-          savePlayerScore('Petugas Patroli', score)
+          savePlayerScore(score)
           try {
             void confetti({ particleCount: 150, spread: 90 })
           } catch {}
@@ -107,36 +109,55 @@ export function CctvPatrolGame() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [screen, isPaused, playSfx, score])
+  }, [screen, isPaused, playSfx, score, stopAllAudio])
 
   // Check Game Over when lives reach 0
   useEffect(() => {
     if (screen === 'game' && lives <= 0) {
+      stopAllAudio()
       setScreen('gameover')
       playSfx('gameOver')
       if (score > 0) {
-        savePlayerScore('Petugas Patroli', score)
+        savePlayerScore(score)
       }
     }
-  }, [screen, lives, playSfx, score])
+  }, [screen, lives, playSfx, score, stopAllAudio])
 
   // Periodic Anomaly Spawner across the 6 locations
+  // RULES:
+  // 1. Grace Period: 2.5 minutes (150 seconds) at the start without any anomalies so player can memorize locations
+  // 2. Uniqueness: Each anomaly only spawns ONCE. Once reported, it never appears again.
   useEffect(() => {
     if (screen !== 'game' || isPaused) return
 
     const spawnAnomaly = () => {
+      // Grace period: do not spawn any anomalies during the first 150 seconds (2.5 minutes)
+      if (timeLeft > GAME_DURATION - 150) return
+
       setActiveAnomalies((curr) => {
         if (curr.length >= 3) return curr
 
         const occupiedLocIds = new Set(curr.map((a) => a.locationId))
-        const eligibleLocations = GAME_LOCATIONS.filter(
-          (loc) => !occupiedLocIds.has(loc.id) && loc.anomalies.length > 0
-        )
+        const activeAnomalyIds = new Set(curr.map((a) => a.anomaly.id))
+
+        // Find locations with anomalies that haven't been reported yet and aren't already active
+        const eligibleLocations = GAME_LOCATIONS.filter((loc) => {
+          if (occupiedLocIds.has(loc.id)) return false
+          const available = loc.anomalies.filter(
+            (anom) => !reportedAnomalyIds.includes(anom.id) && !activeAnomalyIds.has(anom.id)
+          )
+          return available.length > 0
+        })
 
         if (eligibleLocations.length === 0) return curr
 
         const targetLoc = eligibleLocations[Math.floor(Math.random() * eligibleLocations.length)]
-        const randomAnom = targetLoc.anomalies[Math.floor(Math.random() * targetLoc.anomalies.length)]
+        const availableAnoms = targetLoc.anomalies.filter(
+          (anom) => !reportedAnomalyIds.includes(anom.id) && !activeAnomalyIds.has(anom.id)
+        )
+        if (availableAnoms.length === 0) return curr
+
+        const randomAnom = availableAnoms[Math.floor(Math.random() * availableAnoms.length)]
 
         counterRef.current += 1
         const newActive: ActiveAnomalyState = {
@@ -152,14 +173,12 @@ export function CctvPatrolGame() {
       })
     }
 
-    const intervalTimer = setInterval(spawnAnomaly, 24000)
-    const initialTimer = setTimeout(spawnAnomaly, 5000)
+    const intervalTimer = setInterval(spawnAnomaly, 20000)
 
     return () => {
       clearInterval(intervalTimer)
-      clearTimeout(initialTimer)
     }
-  }, [screen, isPaused])
+  }, [screen, isPaused, timeLeft, reportedAnomalyIds])
 
   // Direct switch to specific room (from bottom cards)
   const switchLocation = useCallback(
@@ -237,14 +256,23 @@ export function CctvPatrolGame() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [screen, navigateCctv, reportModalOpen])
 
+  // Return to Lobby (stops all game audio cleanly)
+  const handleReturnToLobby = () => {
+    stopAllAudio()
+    setIsPaused(false)
+    setScreen('lobby')
+  }
+
   // Start new game session
   const handleStartGame = () => {
+    stopAllAudio()
     startBgm()
     setTimeLeft(GAME_DURATION)
     setLives(MAX_LIVES)
     setScore(0)
     setResolvedCount(0)
     setActiveAnomalies([])
+    setReportedAnomalyIds([])
     setLocationIndex(0)
     setAngleIndex(0)
     setIsPaused(false)
@@ -313,6 +341,8 @@ export function CctvPatrolGame() {
     }
 
     // ANOMALY SUCCESSFULLY RESOLVED!
+    // Add to reported anomalies list so this exact anomaly NEVER spawns again!
+    setReportedAnomalyIds((prev) => [...prev, anom.id])
     playSfx('verified')
     setActiveAnomalies((curr) => curr.filter((_, idx) => idx !== matchIdx))
     setScore((prev) => prev + 150)
@@ -684,10 +714,7 @@ export function CctvPatrolGame() {
                     <button
                       type="button"
                       className="pause-btn pause-btn-home"
-                      onClick={() => {
-                        setIsPaused(false)
-                        setScreen('lobby')
-                      }}
+                      onClick={handleReturnToLobby}
                     >
                       <ArrowLeft className="w-5 h-5" />
                       <span>KEMBALI KE LOBBY (HOME)</span>
@@ -734,7 +761,7 @@ export function CctvPatrolGame() {
               <button
                 type="button"
                 className="btn-result-secondary"
-                onClick={() => setScreen('lobby')}
+                onClick={handleReturnToLobby}
               >
                 <span>KEMBALI KE MENU UTAMA</span>
               </button>
@@ -781,7 +808,7 @@ export function CctvPatrolGame() {
               <button
                 type="button"
                 className="btn-result-secondary"
-                onClick={() => setScreen('lobby')}
+                onClick={handleReturnToLobby}
               >
                 <span>KEMBALI KE MENU UTAMA</span>
               </button>

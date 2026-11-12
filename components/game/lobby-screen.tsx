@@ -169,8 +169,8 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
           <div className="leaderboard-card-header">
             <Trophy className="w-5 h-5 text-amber-400" />
             <div>
-              <h2 className="leaderboard-title">REKOR PETUGAS</h2>
-              <span className="leaderboard-subtitle">Top 5 Skor Tertinggi</span>
+              <h2 className="leaderboard-title">PAPAN SKOR TERTINGGI</h2>
+              <span className="leaderboard-subtitle">Top 5 Skor Pengawas</span>
             </div>
           </div>
 
@@ -181,8 +181,8 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
                 <div key={item.id} className={`leaderboard-item rank-${rank}`}>
                   <div className="item-rank-badge">0{rank}</div>
                   <div className="item-info">
-                    <span className="item-name">{item.name}</span>
-                    <span className="item-role">{item.role}</span>
+                    <span className="item-rank-label">PERINGKAT 0{rank}</span>
+                    <span className="item-role">{item.date}</span>
                   </div>
                   <div className="item-score">
                     <span className="score-num">{item.score}</span>

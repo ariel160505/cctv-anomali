@@ -192,12 +192,10 @@ body {
   min-width: 0;
   text-align: left;
 }
-.item-name {
+.item-rank-label {
   font: 800 11px var(--font-mono);
   color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.04em;
 }
 .item-role {
   font-size: 9px;

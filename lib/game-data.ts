@@ -369,26 +369,24 @@ export function formatTime(seconds: number): string {
 
 export type LeaderboardEntry = {
   id: string
-  name: string
-  role: string
   score: number
   date: string
 }
 
 export const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
-  { id: '1', name: 'Satpam Bambang', role: 'Security', score: 120, date: 'Hari ini' },
-  { id: '2', name: 'Pak Joko', role: 'Penjaga Sekolah', score: 90, date: 'Kemarin' },
-  { id: '3', name: 'Guru Piket Ani', role: 'Guru Piket', score: 70, date: '2 hari lalu' },
-  { id: '4', name: 'Mang Ujang', role: 'Staff Kebersihan', score: 50, date: '3 hari lalu' },
-  { id: '5', name: 'Kang Asep', role: 'Petugas Gerbang', score: 30, date: '4 hari lalu' },
+  { id: '1', score: 120, date: 'Skor Standar' },
+  { id: '2', score: 90, date: 'Skor Standar' },
+  { id: '3', score: 70, date: 'Skor Standar' },
+  { id: '4', score: 50, date: 'Skor Standar' },
+  { id: '5', score: 30, date: 'Skor Standar' },
 ]
 
 export function getLeaderboard(): LeaderboardEntry[] {
   if (typeof window === 'undefined') return DEFAULT_LEADERBOARD
   try {
-    const raw = localStorage.getItem('cctv_aqis_leaderboard')
+    const raw = localStorage.getItem('cctv_aqis_scores_v3')
     if (!raw) {
-      localStorage.setItem('cctv_aqis_leaderboard', JSON.stringify(DEFAULT_LEADERBOARD))
+      localStorage.setItem('cctv_aqis_scores_v3', JSON.stringify(DEFAULT_LEADERBOARD))
       return DEFAULT_LEADERBOARD
     }
     const parsed = JSON.parse(raw)
@@ -398,21 +396,19 @@ export function getLeaderboard(): LeaderboardEntry[] {
   }
 }
 
-export function savePlayerScore(name: string, score: number): LeaderboardEntry[] {
-  if (typeof window === 'undefined') return DEFAULT_LEADERBOARD
+export function savePlayerScore(score: number): LeaderboardEntry[] {
+  if (typeof window === 'undefined' || score <= 0) return getLeaderboard()
   try {
     const current = getLeaderboard()
     const newEntry: LeaderboardEntry = {
       id: Date.now().toString(),
-      name: name.trim() || 'Petugas Kamu',
-      role: 'Petugas Patroli',
       score,
-      date: 'Baru saja',
+      date: 'Skor Terbaru',
     }
     const combined = [...current, newEntry]
     combined.sort((a, b) => b.score - a.score)
     const top5 = combined.slice(0, 5)
-    localStorage.setItem('cctv_aqis_leaderboard', JSON.stringify(top5))
+    localStorage.setItem('cctv_aqis_scores_v3', JSON.stringify(top5))
     return top5
   } catch {
     return DEFAULT_LEADERBOARD
