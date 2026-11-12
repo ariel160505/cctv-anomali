@@ -63,6 +63,18 @@ export function CctvPatrolGame() {
   const [reportFeedback, setReportFeedback] = useState<{ success: boolean; text: string } | null>(null)
   const [reportedAnomalyIds, setReportedAnomalyIds] = useState<string[]>([])
 
+  const reportedAnomalyIdsRef = useRef<string[]>([])
+  const activeAnomaliesRef = useRef<ActiveAnomalyState[]>([])
+  const secondsSinceSpawnRef = useRef(0)
+
+  useEffect(() => {
+    reportedAnomalyIdsRef.current = reportedAnomalyIds
+  }, [reportedAnomalyIds])
+
+  useEffect(() => {
+    activeAnomaliesRef.current = activeAnomalies
+  }, [activeAnomalies])
+
   const { isMuted, toggleMute, startBgm, stopBgm, stopAllAudio, playSfx } = useGameAudio()
   const counterRef = useRef(0)
   const [liveClock, setLiveClock] = useState('--:--:--')
@@ -87,7 +99,12 @@ export function CctvPatrolGame() {
     return () => clearInterval(timer)
   }, [])
 
-  // Timer Countdown (10 Minutes)
+  // Timer Countdown (10 Minutes) & Anomaly Spawner Loop
+  // RULES:
+  // 1. Grace Period: 2 minutes (120 seconds) at start so user can explore & memorize normal locations.
+  // 2. Exactly at 2 minutes (08:00), the first anomaly spawns!
+  // 3. Afterwards, an anomaly spawns every 20 seconds.
+  // 4. Each anomaly only appears ONCE per game session.
   useEffect(() => {
     if (screen !== 'game' || isPaused) return
 
@@ -104,7 +121,60 @@ export function CctvPatrolGame() {
           } catch {}
           return 0
         }
-        return prev - 1
+
+        const newTime = prev - 1
+        const elapsed = GAME_DURATION - newTime
+
+        // Grace Period: 2 minutes (120s)
+        if (elapsed >= 120) {
+          secondsSinceSpawnRef.current += 1
+
+          // Spawn immediately at 120s (08:00 on clock), then every 20 seconds
+          if (elapsed === 120 || secondsSinceSpawnRef.current >= 20) {
+            secondsSinceSpawnRef.current = 0
+
+            const currActive = activeAnomaliesRef.current
+            if (currActive.length < 3) {
+              const occupiedLocIds = new Set(currActive.map((a) => a.locationId))
+              const activeAnomalyIds = new Set(currActive.map((a) => a.anomaly.id))
+              const reportedSet = new Set(reportedAnomalyIdsRef.current)
+
+              const eligibleLocations = GAME_LOCATIONS.filter((loc) => {
+                if (occupiedLocIds.has(loc.id)) return false
+                return loc.anomalies.some(
+                  (anom) => !reportedSet.has(anom.id) && !activeAnomalyIds.has(anom.id)
+                )
+              })
+
+              if (eligibleLocations.length > 0) {
+                const targetLoc = eligibleLocations[Math.floor(Math.random() * eligibleLocations.length)]
+                const availableAnoms = targetLoc.anomalies.filter(
+                  (anom) => !reportedSet.has(anom.id) && !activeAnomalyIds.has(anom.id)
+                )
+
+                if (availableAnoms.length > 0) {
+                  const randomAnom = availableAnoms[Math.floor(Math.random() * availableAnoms.length)]
+                  counterRef.current += 1
+                  const newActive: ActiveAnomalyState = {
+                    instanceId: `anomaly-${counterRef.current}-${randomAnom.id}`,
+                    locationId: targetLoc.id,
+                    angleIndex: randomAnom.angleIndex,
+                    anomaly: randomAnom,
+                    currentStage: 1,
+                    spawnedAt: Date.now(),
+                  }
+
+                  setActiveAnomalies((curr) => {
+                    if (curr.length >= 3) return curr
+                    return [...curr, newActive]
+                  })
+                }
+              }
+            }
+          }
+        }
+
+        return newTime
       })
     }, 1000)
 
@@ -122,63 +192,6 @@ export function CctvPatrolGame() {
       }
     }
   }, [screen, lives, playSfx, score, stopAllAudio])
-
-  // Periodic Anomaly Spawner across the 6 locations
-  // RULES:
-  // 1. Grace Period: 2.5 minutes (150 seconds) at the start without any anomalies so player can memorize locations
-  // 2. Uniqueness: Each anomaly only spawns ONCE. Once reported, it never appears again.
-  useEffect(() => {
-    if (screen !== 'game' || isPaused) return
-
-    const spawnAnomaly = () => {
-      // Grace period: do not spawn any anomalies during the first 150 seconds (2.5 minutes)
-      if (timeLeft > GAME_DURATION - 150) return
-
-      setActiveAnomalies((curr) => {
-        if (curr.length >= 3) return curr
-
-        const occupiedLocIds = new Set(curr.map((a) => a.locationId))
-        const activeAnomalyIds = new Set(curr.map((a) => a.anomaly.id))
-
-        // Find locations with anomalies that haven't been reported yet and aren't already active
-        const eligibleLocations = GAME_LOCATIONS.filter((loc) => {
-          if (occupiedLocIds.has(loc.id)) return false
-          const available = loc.anomalies.filter(
-            (anom) => !reportedAnomalyIds.includes(anom.id) && !activeAnomalyIds.has(anom.id)
-          )
-          return available.length > 0
-        })
-
-        if (eligibleLocations.length === 0) return curr
-
-        const targetLoc = eligibleLocations[Math.floor(Math.random() * eligibleLocations.length)]
-        const availableAnoms = targetLoc.anomalies.filter(
-          (anom) => !reportedAnomalyIds.includes(anom.id) && !activeAnomalyIds.has(anom.id)
-        )
-        if (availableAnoms.length === 0) return curr
-
-        const randomAnom = availableAnoms[Math.floor(Math.random() * availableAnoms.length)]
-
-        counterRef.current += 1
-        const newActive: ActiveAnomalyState = {
-          instanceId: `anomaly-${counterRef.current}-${randomAnom.id}`,
-          locationId: targetLoc.id,
-          angleIndex: randomAnom.angleIndex,
-          anomaly: randomAnom,
-          currentStage: 1,
-          spawnedAt: Date.now(),
-        }
-
-        return [...curr, newActive]
-      })
-    }
-
-    const intervalTimer = setInterval(spawnAnomaly, 20000)
-
-    return () => {
-      clearInterval(intervalTimer)
-    }
-  }, [screen, isPaused, timeLeft, reportedAnomalyIds])
 
   // Direct switch to specific room (from bottom cards)
   const switchLocation = useCallback(
@@ -273,6 +286,7 @@ export function CctvPatrolGame() {
     setResolvedCount(0)
     setActiveAnomalies([])
     setReportedAnomalyIds([])
+    secondsSinceSpawnRef.current = 0
     setLocationIndex(0)
     setAngleIndex(0)
     setIsPaused(false)
