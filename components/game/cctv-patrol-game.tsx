@@ -218,9 +218,9 @@ export function CctvPatrolGame() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [screen, handlePrevCamera, handleNextCamera, play])
 
-  // Anomaly Verification Handler
+  // Anomaly Verification Handler (Observation Duty Style: Room + Category Verification)
   const handleReportAnomaly = useCallback(
-    (type: AnomalyType, clickX: number, clickY: number): boolean => {
+    (type: AnomalyType, _clickX: number, _clickY: number): boolean => {
       const matchIndex = activeAnomalies.findIndex((a) => a.locationId === location.id)
       if (matchIndex === -1) {
         play('buzzer')
@@ -230,24 +230,13 @@ export function CctvPatrolGame() {
       const currentTarget = activeAnomalies[matchIndex]
       const anom = currentTarget.anomaly
 
+      // Verify category
       if (anom.type !== type) {
         play('buzzer')
         return false
       }
 
-      const dist = Math.hypot(clickX - anom.x, clickY - anom.y)
-      const inBox =
-        clickX >= anom.x - anom.w &&
-        clickX <= anom.x + anom.w &&
-        clickY >= anom.y - anom.h &&
-        clickY <= anom.y + anom.h
-
-      if (dist > 25 && !inBox && (clickX !== 50 || clickY !== 50)) {
-        play('buzzer')
-        return false
-      }
-
-      // SUCCESS VERIFIED
+      // SUCCESS VERIFIED: Anomaly cleared from this room!
       play('verified')
       setActiveAnomalies((curr) => curr.filter((_, idx) => idx !== matchIndex))
       setScore((prev) => prev + 150)

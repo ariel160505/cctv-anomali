@@ -80,9 +80,9 @@ export function CctvFeed({
     return () => window.clearTimeout(t)
   }, [location.id, activeAnomaly?.anomaly.id])
 
-  // Click on CCTV stage to trigger report at clicked point
+  // Click on CCTV stage to trigger report dialog
   const handleStageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('.report-dialog-box')) {
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('.report-dialog-centered')) {
       return
     }
     if (!feedRef.current) return
@@ -127,7 +127,7 @@ export function CctvFeed({
           y,
           success: false,
           title: 'LAPORAN GAGAL!',
-          sub: 'Jenis anomali / lokasi tidak sesuai',
+          sub: 'Jenis anomali tidak sesuai',
         },
       ])
     }
@@ -142,161 +142,189 @@ export function CctvFeed({
   const displayImage = isAnomalyHere ? activeAnomaly.anomaly.image : (location.baseImage || location.images[0])
 
   return (
-    <div
-      ref={feedRef}
-      className={`modern-cctv-stage ${isGlitching ? 'cctv-static-glitch' : ''}`}
-      onClick={handleStageClick}
-      role="group"
-      aria-label={`Feed CCTV Kamera ${location.camera} - ${location.name}`}
-    >
-      {/* Real CCTV Photo Background (Base or Anomaly) */}
-      <div className="modern-cctv-img-wrap">
-        <Image
-          src={displayImage}
-          alt={`CCTV ${location.name}`}
-          fill
-          priority
-          sizes="(max-width: 1200px) 100vw, 85vw"
-          className="modern-cctv-img"
-        />
-      </div>
-
-      {/* Subtle CCTV Overlays: Scanlines & Vignette */}
-      <div className="modern-cctv-scanlines" />
-      <div className="modern-cctv-vignette" />
-
-      {/* Top Left Stamp */}
-      <div className="cctv-top-stamp">
-        <div className="cctv-stamp-badge">CAM-{location.camera}</div>
-        <div className="cctv-stamp-text">
-          <span className="cctv-stamp-clock">{clock}</span>
-          <span className="cctv-stamp-sep">•</span>
-          <span className="cctv-stamp-loc">{location.name}</span>
-        </div>
-      </div>
-
-      {/* Top Right Live & REC indicator */}
-      <div className="cctv-top-status">
-        <div className="cctv-rec-pill">
-          <span className="cctv-rec-blink" />
-          <span>REC</span>
-        </div>
-        <div className="cctv-room-pill">
-          <Eye className="w-3.5 h-3.5 text-emerald-400" />
-          <span>{location.shortName}</span>
-        </div>
-      </div>
-
-      {/* Interactive Floating Report Dialog at Click Position */}
-      <AnimatePresence>
-        {reportModal?.open && (
-          <motion.div
-            className="report-dialog-box"
-            style={{
-              left: `${Math.min(Math.max(reportModal.x, 24), 76)}%`,
-              top: `${Math.min(Math.max(reportModal.y, 24), 74)}%`,
-            }}
-            initial={{ opacity: 0, scale: 0.85, y: -8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: -8 }}
-            transition={{ duration: 0.15 }}
-          >
-            <div className="report-dialog-header">
-              <span className="report-pin-tag">📍 TITIK: {reportModal.x}%, {reportModal.y}%</span>
-              <button
-                type="button"
-                className="report-btn-close"
-                onClick={() => setReportModal(null)}
-                title="Tutup (ESC)"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="report-dialog-title">PILIH JENIS KEJADIAN:</p>
-            <div className="report-options-grid">
-              {ANOMALY_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.type}
-                  type="button"
-                  className="report-option-btn"
-                  onClick={() => handleSelectReport(cat.type)}
-                >
-                  <span className="option-icon">{cat.icon}</span>
-                  <div className="option-text">
-                    <span className="option-label">{cat.label}</span>
-                    <span className="option-sub">{cat.description}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Feedback popups (Success / Miss) */}
-      <AnimatePresence>
-        {feedbacks.map((f) => (
-          <motion.div
-            key={f.id}
-            className={`feedback-toast ${f.success ? 'feedback-toast-success' : 'feedback-toast-fail'}`}
-            style={{ left: `${f.x}%`, top: `${f.y}%` }}
-            initial={{ opacity: 0, scale: 0.7, y: 0 }}
-            animate={{ opacity: 1, scale: 1.05, y: -24 }}
-            exit={{ opacity: 0, scale: 0.9, y: -40 }}
-            transition={{ duration: 0.35 }}
-          >
-            {f.success ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-300 flex-shrink-0" />
-            ) : (
-              <XCircle className="w-5 h-5 text-rose-300 flex-shrink-0" />
-            )}
-            <div>
-              <div className="feedback-title">{f.title}</div>
-              <div className="feedback-sub">{f.sub}</div>
-            </div>
-          </motion.div>
-        ))}
-      </AnimatePresence>
-
-      {/* Left / Right Floating Camera Switch Arrows */}
-      <button
-        type="button"
-        className="cctv-floating-arrow arrow-left"
-        onClick={(e) => {
-          e.stopPropagation()
-          onPrevCamera()
-        }}
-        title="Kamera Sebelumnya (Panah Kiri / A)"
+    <>
+      <div
+        ref={feedRef}
+        className={`modern-cctv-stage ${isGlitching ? 'cctv-static-glitch' : ''}`}
+        onClick={handleStageClick}
+        role="group"
+        aria-label={`Feed CCTV Kamera ${location.camera} - ${location.name}`}
       >
-        <ChevronLeft className="w-7 h-7" />
-      </button>
+        {/* Real CCTV Photo Background (Base or Anomaly) */}
+        <div className="modern-cctv-img-wrap">
+          <Image
+            src={displayImage}
+            alt={`CCTV ${location.name}`}
+            fill
+            priority
+            sizes="(max-width: 1200px) 100vw, 85vw"
+            className="modern-cctv-img"
+          />
+        </div>
 
-      <button
-        type="button"
-        className="cctv-floating-arrow arrow-right"
-        onClick={(e) => {
-          e.stopPropagation()
-          onNextCamera()
-        }}
-        title="Kamera Berikutnya (Panah Kanan / D)"
-      >
-        <ChevronRight className="w-7 h-7" />
-      </button>
+        {/* Subtle CCTV Overlays: Scanlines & Vignette */}
+        <div className="modern-cctv-scanlines" />
+        <div className="modern-cctv-vignette" />
 
-      {/* Bottom Center Report Prompt Button */}
-      <div className="modern-cctv-bottom-bar">
+        {/* Top Left Stamp */}
+        <div className="cctv-top-stamp">
+          <div className="cctv-stamp-badge">CAM-{location.camera}</div>
+          <div className="cctv-stamp-text">
+            <span className="cctv-stamp-clock">{clock}</span>
+            <span className="cctv-stamp-sep">•</span>
+            <span className="cctv-stamp-loc">{location.name}</span>
+          </div>
+        </div>
+
+        {/* Top Right Live & REC indicator */}
+        <div className="cctv-top-status">
+          <div className="cctv-rec-pill">
+            <span className="cctv-rec-blink" />
+            <span>REC</span>
+          </div>
+          <div className="cctv-room-pill">
+            <Eye className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{location.shortName}</span>
+          </div>
+        </div>
+
+        {/* Feedback popups (Success / Miss) */}
+        <AnimatePresence>
+          {feedbacks.map((f) => (
+            <motion.div
+              key={f.id}
+              className={`feedback-toast ${f.success ? 'feedback-toast-success' : 'feedback-toast-fail'}`}
+              style={{ left: `${f.x}%`, top: `${f.y}%` }}
+              initial={{ opacity: 0, scale: 0.7, y: 0 }}
+              animate={{ opacity: 1, scale: 1.05, y: -24 }}
+              exit={{ opacity: 0, scale: 0.9, y: -40 }}
+              transition={{ duration: 0.35 }}
+            >
+              {f.success ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-300 flex-shrink-0" />
+              ) : (
+                <XCircle className="w-5 h-5 text-rose-300 flex-shrink-0" />
+              )}
+              <div>
+                <div className="feedback-title">{f.title}</div>
+                <div className="feedback-sub">{f.sub}</div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Left / Right Floating Camera Switch Arrows */}
         <button
           type="button"
-          className="report-trigger-btn"
+          className="cctv-floating-arrow arrow-left"
           onClick={(e) => {
             e.stopPropagation()
-            setReportModal({ open: true, x: 50, y: 50 })
+            onPrevCamera()
           }}
+          title="Kamera Sebelumnya (Panah Kiri / A)"
         >
-          <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-          <span>KLIK KEJADIAN DI GAMBAR ATAU KLIK DISINI</span>
+          <ChevronLeft className="w-7 h-7" />
         </button>
+
+        <button
+          type="button"
+          className="cctv-floating-arrow arrow-right"
+          onClick={(e) => {
+            e.stopPropagation()
+            onNextCamera()
+          }}
+          title="Kamera Berikutnya (Panah Kanan / D)"
+        >
+          <ChevronRight className="w-7 h-7" />
+        </button>
+
+        {/* Bottom Center Report Prompt Button */}
+        <div className="modern-cctv-bottom-bar">
+          <button
+            type="button"
+            className="report-trigger-btn"
+            onClick={(e) => {
+              e.stopPropagation()
+              setReportModal({ open: true, x: 50, y: 50 })
+            }}
+          >
+            <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+            <span>KLIK KEJADIAN DI GAMBAR ATAU KLIK DISINI</span>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Centered Report Modal with Fullscreen Overlay */}
+      <AnimatePresence>
+        {reportModal?.open && (
+          <div
+            className="report-modal-overlay"
+            onClick={() => setReportModal(null)}
+          >
+            <motion.div
+              className="report-dialog-centered"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.92, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 15 }}
+              transition={{ duration: 0.18 }}
+            >
+              <div className="report-dialog-header">
+                <div className="report-header-left">
+                  <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+                  <span className="report-header-title">LAPORKAN ANOMALI CCTV</span>
+                </div>
+                <button
+                  type="button"
+                  className="report-btn-close"
+                  onClick={() => setReportModal(null)}
+                  title="Tutup (ESC)"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="report-cam-badge-row">
+                <div className="report-location-tag">
+                  Kamera: <strong>CAM-{location.camera} {location.name}</strong>
+                </div>
+                <div className="report-coords-tag">
+                  Titik: {reportModal.x}%, {reportModal.y}%
+                </div>
+              </div>
+
+              <p className="report-dialog-sub">
+                Pilih jenis kejanggalan atau anomali yang kamu lihat di kamera ini:
+              </p>
+
+              <div className="report-options-grid">
+                {ANOMALY_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.type}
+                    type="button"
+                    className="report-option-btn"
+                    onClick={() => handleSelectReport(cat.type)}
+                  >
+                    <span className="option-icon">{cat.icon}</span>
+                    <div className="option-text">
+                      <span className="option-label">{cat.label}</span>
+                      <span className="option-sub">{cat.description}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="report-btn-cancel"
+                onClick={() => setReportModal(null)}
+              >
+                Batal / Lanjut Memantau
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
