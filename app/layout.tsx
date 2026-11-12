@@ -3,9 +3,9 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'CCTV Patrol: Razia Pembolos',
-  description: 'Jaga sekolah Nusantara dalam simulasi patroli CCTV. Pantau tujuh kamera, tangkap siswa yang bolos, dan raih skor tertinggi.',
-  applicationName: 'CCTV Patrol',
+  title: 'CCTV : Aqis - Surveillance Anomaly Protocol',
+  description: 'Protokol Pengawasan Keamanan & Deteksi Anomali Sekolah. Bertahan selama 10 menit dengan 3 nyawa.',
+  applicationName: 'CCTV : Aqis',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'dark',
-  themeColor: '#101812',
+  themeColor: '#060907',
   userScalable: true,
   width: 'device-width',
   initialScale: 1,

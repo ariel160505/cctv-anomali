@@ -5,1459 +5,1119 @@
 
 :root {
   color-scheme: dark;
-  --bg-dark: #0a100b;
-  --panel-bg: #121c14;
-  --panel-border: #233425;
-  --brand-green: #4ade80;
+  --bg-dark: #060907;
+  --panel-bg: #0d140f;
+  --panel-border: #1b291d;
+  --brand-green: #22c55e;
   --brand-emerald: #10b981;
-  --brand-amber: #facc15;
-  --brand-red: #f87171;
+  --brand-amber: #f59e0b;
+  --brand-red: #ef4444;
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   --font-sans: Inter, system-ui, -apple-system, sans-serif;
   background-color: var(--bg-dark);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   min-height: 100vh;
   background-color: var(--bg-dark);
   color: #f1f5f9;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  user-select: none;
 }
 
 /* ==========================================================================
-   1. ARCADE LOBBY SCREEN (TAMPILAN AWAL BERSIH & MENARIK)
+   1. HORROR CCTV AQIS: LOBBY SCREEN (AUTHENTIC CRT MONITOR)
    ========================================================================== */
-.arcade-lobby-shell {
+.horror-lobby-shell {
   min-height: 100vh;
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 24px 20px;
-  background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.15), transparent 60%), #0a100b;
+  background: radial-gradient(circle at 50% 25%, rgba(16, 185, 129, 0.08), transparent 60%), #060907;
+  overflow: hidden;
 }
 
-.arcade-top-header {
-  width: min(100%, 1020px);
+.horror-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.lobby-top-bar {
+  width: min(100%, 1100px);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  z-index: 10;
 }
 
-.arcade-logo-badge {
+.brand-terminal-badge {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: 20px;
-  background: rgba(18, 28, 20, 0.8);
-  font: 700 11px var(--font-mono);
-  color: #e2e8f0;
+  background: rgba(13, 20, 15, 0.85);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  font: 800 11px var(--font-mono);
+  color: #a7f3d0;
   letter-spacing: 0.08em;
 }
 
-.arcade-live-badge {
+.btn-sound-toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font: 700 11px var(--font-mono);
-  color: var(--brand-green);
-}
-.live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand-green);
-  box-shadow: 0 0 10px var(--brand-green);
-  animation: live-blink 1.4s infinite;
-}
-@keyframes live-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-.arcade-main-container {
-  width: min(100%, 1020px);
-  display: grid;
-  grid-template-columns: 1.25fr 0.95fr;
-  gap: 24px;
-}
-
-.arcade-card {
-  border: 1px solid var(--panel-border);
+  gap: 8px;
+  padding: 6px 14px;
   border-radius: 20px;
-  background: linear-gradient(155deg, rgba(18, 28, 20, 0.95), rgba(12, 19, 13, 0.98));
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.arcade-left-card {
-  padding: 34px 36px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.game-category-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  background: rgba(250, 204, 21, 0.12);
-  border: 1px solid rgba(250, 204, 21, 0.25);
-  color: var(--brand-amber);
-  font: 800 10px var(--font-mono);
-  letter-spacing: 0.06em;
-  width: max-content;
-  margin-bottom: 12px;
-}
-
-.arcade-title {
-  font-size: clamp(34px, 4.5vw, 48px);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: #ffffff;
-}
-.title-highlight {
-  color: var(--brand-green);
-  text-shadow: 0 0 25px rgba(74, 222, 128, 0.4);
-}
-
-.arcade-subtitle {
-  margin: 12px 0 24px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #94a3b8;
-}
-
-.arcade-form {
-  margin-bottom: 24px;
-}
-.arcade-label {
-  display: block;
-  font: 800 10px var(--font-mono);
-  letter-spacing: 0.08em;
-  color: #cbd5e1;
-  margin-bottom: 8px;
-}
-.arcade-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.arcade-input-wrapper input {
-  width: 100%;
-  height: 52px;
-  padding: 0 55px 0 16px;
-  border: 1.5px solid #2d4230;
-  border-radius: 12px;
-  background: rgba(8, 14, 9, 0.8);
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
-  outline: none;
+  background: rgba(18, 28, 21, 0.9);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #f1f5f9;
+  font: 700 11px var(--font-mono);
+  cursor: pointer;
   transition: all 0.2s;
 }
-.arcade-input-wrapper input:focus {
+.btn-sound-toggle:hover {
+  background: rgba(34, 197, 94, 0.2);
   border-color: var(--brand-green);
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
-}
-.input-error { border-color: var(--brand-red) !important; }
-.char-count {
-  position: absolute;
-  right: 14px;
-  font: 700 10px var(--font-mono);
-  color: #64748b;
-}
-.error-text {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #fca5a5;
-  font-weight: 600;
 }
 
-.arcade-play-btn {
-  width: 100%;
-  height: 58px;
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #4ade80, #16a34a);
-  color: #0b170e;
-  font: 900 16px var(--font-mono);
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(74, 222, 128, 0.28);
-  transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
-}
-.arcade-play-btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.08);
-  box-shadow: 0 12px 30px rgba(74, 222, 128, 0.38);
-}
-.arcade-play-btn:active { transform: translateY(0); }
-
-/* Leaderboard Card */
-.arcade-leaderboard-card {
-  padding: 16px 18px;
-  border-radius: 14px;
-  background: rgba(10, 18, 12, 0.6);
-  border: 1px solid rgba(74, 222, 128, 0.12);
-}
-.leaderboard-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font: 800 11px var(--font-mono);
-  color: var(--brand-amber);
-  margin-bottom: 12px;
-}
-.leaderboard-slots {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.leaderboard-slot {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-.slot-medal { font-size: 16px; }
-.slot-name { font-weight: 700; font-size: 13px; color: #f1f5f9; flex: 1; }
-.slot-score { font: 800 13px var(--font-mono); color: var(--brand-amber); }
-.slot-score small { font-size: 9px; color: #94a3b8; }
-
-/* Right Mascot Card */
-.arcade-mascot-card {
-  padding: 30px;
+.lobby-center-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   text-align: center;
-}
-.mascot-card-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.mascot-tag {
-  font: 800 10px var(--font-mono);
-  color: var(--brand-amber);
-  letter-spacing: 0.1em;
-}
-.mascot-title {
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-}
-
-.mascot-visual-stage {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 10px 0;
-}
-.mascot-svg-wrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.mascot-bubble-pill {
-  position: absolute;
-  top: -24px;
-  padding: 6px 14px;
-  border-radius: 16px;
-  background: #ffffff;
-  color: #0f172a;
-  font: 800 12px var(--font-mono);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  white-space: nowrap;
   z-index: 10;
-}
-.mascot-card-footer p {
-  font-size: 12px;
-  color: #94a3b8;
-  line-height: 1.5;
-}
-
-/* ==========================================================================
-   2. CLEAN MAP SCREEN (MAP GAME V2 DENGAN LABEL LOKASI DI BAWAH PIN)
-   ========================================================================== */
-.clean-map-screen {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px 24px;
-  background: #0a100b;
-}
-.clean-map-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: rgba(8, 14, 9, 0.98);
-  backdrop-filter: blur(12px);
-  overflow-y: auto;
-}
-
-.clean-map-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.clean-map-title-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.clean-map-btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: 1.5px solid var(--panel-border);
-  border-radius: 10px;
-  background: rgba(22, 34, 24, 0.8);
-  color: #e2e8f0;
-  font: 700 11px var(--font-mono);
-  cursor: pointer;
-  transition: all 0.16s;
-}
-.clean-map-btn-back:hover { border-color: var(--brand-green); color: var(--brand-green); }
-.clean-map-h1 { font-size: 20px; font-weight: 800; color: #fff; }
-.clean-map-p { font-size: 12px; color: #94a3b8; margin-top: 2px; }
-.clean-map-btn-close {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 1.5px solid var(--panel-border);
-  border-radius: 10px;
-  background: rgba(22, 34, 24, 0.8);
-  color: #94a3b8;
-  cursor: pointer;
-}
-.clean-map-btn-close:hover { color: #fff; border-color: var(--brand-red); }
-
-/* Map Canvas */
-.clean-map-canvas-wrapper {
-  position: relative;
+  max-width: 900px;
   width: 100%;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 520px;
-}
-.clean-map-canvas {
-  position: relative;
-  width: min(100%, 1100px);
-  aspect-ratio: 1.45;
-  border: 2px solid #2d4230;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
-  background: #111a13;
-}
-.clean-map-img { object-fit: contain; }
-
-/* Interactive Pins with Labels Underneath */
-.clean-map-pin-btn {
-  position: absolute;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-  transition: transform 0.18s;
-}
-.clean-map-pin-btn:hover {
-  transform: translate(-50%, -50%) scale(1.15);
-  z-index: 20;
 }
 
-.clean-pin-pulse {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 46px;
-  height: 46px;
-  border: 2px solid rgba(239, 68, 68, 0.85);
-  border-radius: 50%;
-  animation: clean-pulse 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
-  pointer-events: none;
+.lobby-title-wrap {
+  margin-bottom: 20px;
 }
-@keyframes clean-pulse {
-  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.9; }
-  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.35; }
-  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
-}
-
-.clean-pin-badge {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 2.5px solid #ffffff;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ef4444, #b91c1c);
-  color: #ffffff;
-  font: 900 15px var(--font-mono);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-}
-.pin-is-current .clean-pin-badge {
-  background: radial-gradient(circle at 35% 35%, #22c55e, #15803d);
-  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.35);
-}
-.pin-is-current .clean-pin-pulse { border-color: rgba(74, 222, 128, 0.9); }
-
-/* Location Label Underneath the Pin */
-.clean-pin-label {
-  margin-top: 5px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  background: rgba(15, 23, 17, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(6px);
-  color: #ffffff;
-  font: 800 11px var(--font-sans);
-  white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  pointer-events: none;
-}
-.pin-label-text { letter-spacing: -0.01em; }
-.pin-current-tag {
-  font: 800 9px var(--font-mono);
-  color: var(--brand-green);
-  padding: 1px 4px;
-  background: rgba(74, 222, 128, 0.15);
-  border-radius: 4px;
-}
-
-.clean-map-footer {
-  margin-top: 14px;
-  display: flex;
-  justify-content: center;
-}
-.clean-map-pills {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-.map-pill-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  background: rgba(18, 28, 20, 0.8);
-  color: #cbd5e1;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.16s;
-}
-.map-pill-item:hover { border-color: var(--brand-green); color: #fff; }
-.pill-active { background: var(--brand-green); color: #0f172a !important; font-weight: 900; }
-.pill-num {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.25);
-  display: grid;
-  place-items: center;
-  font: 800 10px var(--font-mono);
-}
-
-/* ==========================================================================
-   3. MODERN CCTV GAME VIEW (TAMPILAN MONITOR IMERSIF & BERSIH)
-   ========================================================================== */
-.modern-game-layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 16px 24px;
-  background: #090e0a;
-}
-
-.modern-game-hud {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.hud-map-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: 1.5px solid #2d4230;
-  border-radius: 10px;
-  background: rgba(18, 28, 20, 0.9);
-  color: #f1f5f9;
-  font: 800 12px var(--font-mono);
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: all 0.16s;
-}
-.hud-map-btn:hover { border-color: var(--brand-green); background: #1c2b1e; }
-.hud-kbd {
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: #0f172a;
-  border: 1px solid #334155;
-  color: #94a3b8;
-  font: 700 9px var(--font-mono);
-}
-
-.hud-center-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 10px;
-  background: rgba(18, 28, 20, 0.7);
-  border: 1px solid rgba(74, 222, 128, 0.2);
-}
-.hud-cam-title {
-  font: 800 13px var(--font-mono);
-  color: #ffffff;
-  letter-spacing: 0.04em;
-}
-
-.hud-right-stats {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.hud-score-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 10px;
-  background: rgba(18, 28, 20, 0.85);
-  border: 1px solid rgba(74, 222, 128, 0.25);
-}
-.hud-stat-label { font: 800 11px var(--font-mono); color: #94a3b8; }
-.hud-stat-num { font: 900 17px var(--font-mono); color: var(--brand-amber); }
-
-.hud-timer-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 10px;
-  background: rgba(18, 28, 20, 0.85);
-  border: 1px solid rgba(74, 222, 128, 0.25);
-}
-.hud-timer-num { font: 900 17px var(--font-mono); color: #ffffff; }
-.hud-timer-urgent {
-  border-color: var(--brand-red) !important;
-  animation: urgent-pulse 0.8s infinite alternate;
-}
-.hud-timer-urgent strong { color: var(--brand-red) !important; }
-@keyframes urgent-pulse { to { opacity: 0.55; } }
-
-/* Main CCTV Monitor Container */
-.modern-monitor-container {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modern-cctv-stage {
-  position: relative;
-  width: min(100%, 1240px);
-  aspect-ratio: 16 / 9;
-  max-height: calc(100vh - 160px);
-  border: 2px solid #233425;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-  background: #0f172a;
-  user-select: none;
-  cursor: crosshair;
-}
-
-.modern-cctv-img-wrap { position: absolute; inset: 0; z-index: 1; }
-.modern-cctv-img { object-fit: cover; }
-
-.modern-cctv-scanlines {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  opacity: 0.1;
-  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,0.8) 4px);
-  pointer-events: none;
-}
-.modern-cctv-vignette {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
-  pointer-events: none;
-}
-
-.modern-cctv-stamp {
-  position: absolute;
-  top: 14px;
-  left: 16px;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+.game-sys-tag {
   font: 800 11px var(--font-mono);
-  pointer-events: none;
+  color: var(--brand-amber);
+  letter-spacing: 0.16em;
 }
-.cctv-cam-badge {
-  padding: 3px 7px;
-  border-radius: 4px;
-  background: var(--brand-green);
-  color: #0b170e;
+.horror-main-title {
+  font-size: clamp(38px, 6vw, 64px);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
 }
-.cctv-clock { color: #f1f5f9; }
-.cctv-loc-name { opacity: 0.85; margin-left: 4px; }
+.title-red {
+  color: #ef4444;
+  text-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+}
+.horror-tagline {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-top: 6px;
+  font-weight: 500;
+}
 
-.modern-cctv-rec {
+/* CRT Monitor Case */
+.cctv-crt-monitor-case {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.crt-monitor-bezel {
+  width: min(88vw, 680px);
+  aspect-ratio: 16 / 10;
+  padding: 16px;
+  border-radius: 20px;
+  background: #151b17;
+  border: 3px solid #28372d;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), inset 0 2px 6px rgba(255, 255, 255, 0.1);
+}
+.crt-screen-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000000;
+  border: 2px solid #0d140f;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
+}
+.crt-image-layer {
   position: absolute;
-  top: 14px;
-  right: 16px;
+  inset: 0;
+}
+.crt-img {
+  object-fit: cover;
+  filter: contrast(1.1) brightness(0.9);
+}
+.crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.7) 3px);
+  pointer-events: none;
+  opacity: 0.35;
   z-index: 5;
+}
+.crt-glow-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.6) 100%);
+  pointer-events: none;
+  z-index: 6;
+}
+.crt-flicker-active {
+  filter: brightness(1.7) contrast(1.4) hue-rotate(15deg);
+  transform: translate(1px, -1px);
+}
+.crt-stamp-top {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 10px;
-  border-radius: 6px;
-  background: rgba(15, 23, 17, 0.75);
-  backdrop-filter: blur(4px);
-  color: #fff;
-  font: 800 9px var(--font-mono);
-  pointer-events: none;
+  font: 800 10px var(--font-mono);
+  color: #ecfdf5;
+  text-shadow: 0 1px 3px #000;
 }
-.cctv-rec-dot {
+.crt-rec-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--brand-red);
-  box-shadow: 0 0 8px var(--brand-red);
-  animation: rec-blink 1.2s infinite;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+  animation: pulse-dot 1.2s infinite;
+}
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.crt-stamp-bottom {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  z-index: 10;
+  font: 700 9px var(--font-mono);
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 3px #000;
+}
+.crt-monitor-stand {
+  width: 140px;
+  height: 16px;
+  background: #1c2520;
+  border-radius: 0 0 10px 10px;
+  border: 2px solid #28372d;
+  border-top: none;
 }
 
-/* Floating Navigation Arrows (On CCTV Edges) */
-.cctv-floating-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  width: 50px;
-  height: 75px;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  background: rgba(15, 23, 17, 0.55);
-  backdrop-filter: blur(6px);
-  color: #ffffff;
-  display: grid;
-  place-items: center;
+/* Action Box */
+.lobby-action-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 360px);
+}
+.btn-play-game {
+  width: 100%;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 14px;
+  border: none;
+  background: var(--brand-green);
+  color: #061109;
+  font: 900 16px var(--font-mono);
+  letter-spacing: 0.05em;
   cursor: pointer;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
   transition: all 0.2s;
 }
-.cctv-floating-arrow:hover {
-  background: rgba(74, 222, 128, 0.85);
-  color: #0b170e;
-  border-color: var(--brand-green);
-  transform: translateY(-50%) scale(1.08);
+.btn-play-game:hover {
+  background: #4ade80;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(34, 197, 94, 0.5);
 }
-.arrow-left { left: 0; border-radius: 0 12px 12px 0; border-left: none; }
-.arrow-right { right: 0; border-radius: 12px 0 0 12px; border-right: none; }
-
-/* Camera Angle Switcher */
-.modern-angle-bar {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  background: rgba(15, 23, 17, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(6px);
-}
-.angle-bar-title {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font: 800 9px var(--font-mono);
-  color: #94a3b8;
-}
-.modern-angle-btn {
-  padding: 3px 10px;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  font: 800 10px var(--font-mono);
-  cursor: pointer;
-}
-.modern-angle-btn:hover { background: rgba(74, 222, 128, 0.2); }
-.active-angle {
-  background: var(--brand-green) !important;
-  color: #0b170e !important;
-}
-
-/* Realistic Grounded Student Target */
-.grounded-student-target {
-  position: absolute;
-  z-index: 6;
-  cursor: crosshair;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
-}
-.sprite-realistic { position: relative; display: block; }
-
-/* Catch Effect Banner */
-.modern-catch-banner {
-  position: absolute;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-.catch-target-ring-effect {
-  width: 75px;
-  height: 75px;
-  border: 3.5px solid #4ade80;
-  border-radius: 50%;
-  box-shadow: 0 0 25px #4ade80, inset 0 0 15px #4ade80;
-  animation: ring-pop 0.35s ease-out forwards;
-}
-@keyframes ring-pop {
-  0% { transform: scale(1.6); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.catch-badge-text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  background: rgba(11, 23, 14, 0.95);
-  border: 1.5px solid var(--brand-green);
-  color: var(--brand-green);
-  font: 900 20px var(--font-mono);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.8);
-}
-.catch-sub-label {
-  font: 800 10px var(--font-mono);
-  color: var(--brand-amber);
-  margin-top: 3px;
-  letter-spacing: 0.08em;
-}
-
-.modern-miss-ripple {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  animation: ripple-out 0.45s ease-out forwards;
-}
-@keyframes ripple-out {
-  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
-}
-
-.modern-bottom-bar {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  padding-top: 10px;
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 600;
-}
-.modern-bottom-bar b { color: #cbd5e1; }
-
-/* Results Screen */
-.modern-result-shell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: radial-gradient(circle at 50% 30%, rgba(74, 222, 128, 0.12), transparent 50%), #0a100b;
-}
-.modern-result-card {
-  width: min(100%, 500px);
-  padding: 36px 32px;
-  border-radius: 20px;
-  background: #121c14;
-  border: 1.5px solid var(--panel-border);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-  text-align: center;
-}
-.result-header-badge {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.result-header-badge span {
-  font: 900 11px var(--font-mono);
-  color: var(--brand-amber);
-  letter-spacing: 0.1em;
-}
-.result-player-title { font-size: 28px; font-weight: 900; color: #fff; }
-.result-desc { font-size: 13px; color: #94a3b8; margin: 6px 0 24px; }
-.result-score-box {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 18px;
-  border-radius: 14px;
-  background: rgba(8, 14, 9, 0.8);
-  border: 1px solid var(--panel-border);
-  margin-bottom: 24px;
-}
-.score-stat-box { display: flex; flex-direction: column; gap: 4px; }
-.box-label { font: 800 10px var(--font-mono); color: #64748b; }
-.box-val { font: 900 22px var(--font-mono); }
-.result-actions-row { display: flex; flex-direction: column; gap: 10px; }
-.result-btn-playagain {
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: none;
-  border-radius: 12px;
-  background: var(--brand-green);
-  color: #0b170e;
-  font: 900 14px var(--font-mono);
-  cursor: pointer;
-}
-.result-btn-home {
+.btn-game-guide {
+  width: 100%;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid var(--panel-border);
   border-radius: 12px;
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(18, 28, 21, 0.8);
   color: #cbd5e1;
-  font: 700 12px var(--font-mono);
+  font: 800 12px var(--font-mono);
   cursor: pointer;
+  transition: all 0.2s;
 }
-
-@media (max-width: 850px) {
-  .arcade-main-container { grid-template-columns: 1fr; }
-  .arcade-left-card { padding: 24px; }
-  .modern-cctv-stage { aspect-ratio: 4 / 3; }
-  .modern-bottom-bar { flex-direction: column; align-items: center; gap: 4px; }
+.btn-game-guide:hover {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--brand-green);
+  color: #fff;
 }
-
-
-/* ==========================================================================
-   OBSERVATION DUTY ANOMALY DETECTION & REPORTING STYLES
-   ========================================================================== */
-
-/* Anomaly category guide pills in lobby */
-.anomaly-guide-pills {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin: 14px 0 18px;
-}
-.anomaly-pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: rgba(18, 28, 20, 0.7);
-  border: 1px solid rgba(74, 222, 128, 0.2);
-  font-size: 12px;
-  color: #e2e8f0;
-}
-.pill-icon {
-  font-size: 16px;
-}
-.pill-text {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-/* Threat Status Badges in Top Control Bar */
-.threat-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 20px;
+.lobby-device-notice {
+  margin-top: 20px;
   font: 700 11px var(--font-mono);
+  color: #64748b;
   letter-spacing: 0.05em;
-  transition: all 0.3s ease;
-}
-.threat-calm {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #34d399;
-}
-.threat-warning {
-  background: rgba(245, 158, 11, 0.16);
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #fbbf24;
-  animation: pulse-warn 1.5s infinite;
-}
-.threat-danger {
-  background: rgba(239, 68, 68, 0.22);
-  border: 1px solid rgba(239, 68, 68, 0.6);
-  color: #f87171;
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-  animation: pulse-danger 0.8s infinite;
-}
-@keyframes pulse-warn {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.75; }
-}
-@keyframes pulse-danger {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
 }
 
-/* Static Glitch effect on CCTV feed */
-.cctv-static-glitch {
-  filter: contrast(1.4) brightness(1.15) hue-rotate(15deg);
-  transform: translate(2px, -1px);
-}
-
-/* Centered Fullscreen Report Modal */
-.report-modal-overlay {
+/* Guide Popup Modal */
+.guide-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  padding: 16px;
-  animation: overlay-fade 0.2s ease;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 20px;
 }
-@keyframes overlay-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.report-dialog-centered {
-  position: relative;
-  width: min(94vw, 440px);
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 22px 20px;
+.guide-modal-card {
+  width: min(94vw, 560px);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
   border-radius: 20px;
-  background: linear-gradient(165deg, rgba(16, 26, 18, 0.98), rgba(10, 16, 11, 0.99));
-  border: 1.5px solid rgba(74, 222, 128, 0.55);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(74, 222, 128, 0.2);
+  background: #0f1611;
+  border: 1.5px solid rgba(34, 197, 94, 0.4);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
 }
-
-.report-dialog-header {
+.guide-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-.report-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.report-header-title {
-  font: 900 13px var(--font-mono);
-  color: #ffffff;
-  letter-spacing: 0.06em;
-}
-
-.report-btn-close {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #cbd5e1;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.report-btn-close:hover {
-  background: rgba(239, 68, 68, 0.3);
-  color: #fff;
-  border-color: #ef4444;
-}
-
-.report-cam-badge-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: rgba(74, 222, 128, 0.1);
-  border: 1px solid rgba(74, 222, 128, 0.25);
-  margin-bottom: 14px;
-}
-
-.report-location-tag {
-  font: 800 11px var(--font-mono);
-  color: #ecfdf5;
-}
-
-.report-coords-tag {
-  font: 700 10px var(--font-mono);
-  color: var(--brand-amber);
-}
-
-.report-dialog-sub {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-bottom: 12px;
-  line-height: 1.4;
-}
-
-.report-options-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.report-option-btn {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(22, 36, 25, 0.9);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
-  cursor: pointer;
-  transition: all 0.18s ease;
-  text-align: left;
-}
-.report-option-btn:hover {
-  background: rgba(74, 222, 128, 0.25);
-  border-color: var(--brand-green);
-  transform: scale(1.02);
-}
-
-.option-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.option-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.option-label {
-  font: 800 13px var(--font-mono);
-  color: #ffffff;
-}
-
-.option-sub {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.report-btn-cancel {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #94a3b8;
-  font: 700 11px var(--font-mono);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.report-btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-/* Bottom Report Trigger Button */
-.modern-cctv-bottom-bar {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 30;
-  pointer-events: auto;
-}
-.report-trigger-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  border-radius: 24px;
-  background: rgba(10, 16, 11, 0.88);
-  border: 1.5px solid rgba(74, 222, 128, 0.45);
-  color: #f1f5f9;
-  font: 700 12px var(--font-mono);
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  transition: all 0.2s ease;
-}
-.report-trigger-btn:hover {
-  background: rgba(74, 222, 128, 0.2);
-  border-color: var(--brand-green);
-  color: #fff;
-  transform: scale(1.03);
-}
-
-/* Feedback toasts */
-.feedback-toast {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 50;
+.guide-title-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  pointer-events: none;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
 }
-.feedback-toast-success {
-  background: rgba(6, 78, 59, 0.95);
-  border: 1.5px solid #34d399;
-  color: #ecfdf5;
-}
-.feedback-toast-fail {
-  background: rgba(136, 19, 55, 0.95);
-  border: 1.5px solid #fb7185;
-  color: #fff1f2;
-}
-.feedback-title {
+.guide-title-left h2 {
   font: 900 14px var(--font-mono);
-  letter-spacing: 0.05em;
-}
-.feedback-sub {
-  font-size: 11px;
-  opacity: 0.9;
-}
-
-
-/* ==========================================================================
-   SURVEILLANCE WORKSPACE & RESPONSIVE CCTV FEED STYLES
-   ========================================================================== */
-
-.modern-cctv-workspace {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 18px;
-  background: #090e0a;
-  overflow-x: hidden;
-}
-
-.modern-cctv-header {
-  width: 100%;
-  max-width: 1240px;
-  margin: 0 auto 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-left-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.header-center-nav {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 16px;
-  border-radius: 12px;
-  background: rgba(18, 28, 20, 0.85);
-  border: 1px solid rgba(74, 222, 128, 0.25);
-  backdrop-filter: blur(4px);
-}
-
-.header-nav-arrow {
-  background: transparent;
-  border: none;
-  color: var(--brand-green);
-  font-size: 15px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: all 0.15s;
-}
-.header-nav-arrow:hover {
-  background: rgba(74, 222, 128, 0.2);
-  transform: scale(1.15);
-}
-
-.header-cam-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font: 800 13px var(--font-mono);
   color: #ffffff;
   letter-spacing: 0.04em;
 }
-
-.header-cam-no {
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: var(--brand-green);
-  color: #0b170e;
-  font-weight: 900;
-  font-size: 11px;
+.guide-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
 }
-
-.header-cam-name {
-  color: #f8fafc;
-}
-
-.header-right-group {
+.guide-close-btn:hover { color: #fff; }
+.guide-body-content {
+  padding: 20px 22px;
+  overflow-y: auto;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 14px;
+}
+.guide-rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(22, 34, 25, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.rule-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand-green);
+  color: #061109;
+  font: 900 13px var(--font-mono);
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
 }
+.rule-desc strong {
+  display: block;
+  font-size: 13px;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+.rule-desc p {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+.guide-footer {
+  padding: 16px 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.btn-guide-gotit {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  background: var(--brand-green);
+  color: #061109;
+  font: 900 13px var(--font-mono);
+  cursor: pointer;
+}
 
-/* Stamp & Status on CCTV Monitor */
-.cctv-top-stamp {
-  position: absolute;
-  top: 12px;
-  left: 14px;
-  z-index: 15;
+/* ==========================================================================
+   2. DESKTOP SURVEILLANCE WORKSPACE (GAME VIEW)
+   ========================================================================== */
+.game-desktop-workspace {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #060907;
+}
+
+.game-top-hud {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Left Pause Button */
+.hud-left-controls {
+  display: flex;
+  align-items: center;
+}
+.btn-hamburger-menu {
   display: flex;
   align-items: center;
   gap: 8px;
-  pointer-events: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #131a15;
+  border: 1.5px solid #233426;
+  color: #f1f5f9;
+  font: 800 12px var(--font-mono);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-hamburger-menu:hover {
+  background: #1c2820;
+  border-color: var(--brand-green);
+}
+.btn-menu-label {
+  letter-spacing: 0.05em;
 }
 
-.cctv-stamp-badge {
+/* Center Location Header */
+.hud-location-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.location-cam-pill {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--brand-green);
+  color: #061109;
+  font: 900 12px var(--font-mono);
+}
+.location-title-text {
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+}
+.location-angle-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+}
+.angle-tab-btn {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font: 800 10px var(--font-mono);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.angle-tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.angle-tab-active {
+  background: rgba(34, 197, 94, 0.25) !important;
+  border-color: var(--brand-green) !important;
+  color: var(--brand-green) !important;
+}
+
+/* Right Stats (Lives, Clock, Score) */
+.hud-right-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hud-lives-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(19, 26, 21, 0.9);
+  border: 1px solid #233426;
+}
+.lives-label {
+  font: 800 11px var(--font-mono);
+  color: #94a3b8;
+}
+.hearts-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.heart-pulse {
+  animation: pulse-heart 1.6s infinite ease-in-out;
+}
+@keyframes pulse-heart {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.hud-clock-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(19, 26, 21, 0.9);
+  border: 1.5px solid #233426;
+}
+.clock-digit {
+  font: 900 16px var(--font-mono);
+  color: #ffffff;
+}
+.clock-critical {
+  color: #ef4444 !important;
+  animation: flash-critical 0.8s infinite;
+}
+@keyframes flash-critical {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hud-score-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(19, 26, 21, 0.9);
+  border: 1.5px solid #233426;
+}
+.score-digit {
+  font: 900 16px var(--font-mono);
+  color: var(--brand-amber);
+}
+.score-sub {
+  font: 800 10px var(--font-mono);
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   3. CCTV MONITOR STAGE
+   ========================================================================== */
+.game-monitor-stage-wrap {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.game-cctv-monitor {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: calc(100vh - 200px);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2.5px solid #233426;
+  background: #000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+  cursor: crosshair;
+}
+.cctv-photo-wrapper {
+  position: absolute;
+  inset: 0;
+}
+.cctv-photo {
+  object-fit: cover;
+}
+.cctv-scanlines-layer {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.65) 3px);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 5;
+}
+.cctv-vignette-layer {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 65%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.monitor-top-left-stamp {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 800 12px var(--font-mono);
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
+  pointer-events: none;
+}
+.stamp-cam-badge {
   padding: 3px 8px;
   border-radius: 4px;
   background: var(--brand-green);
-  color: #0b170e;
-  font: 900 11px var(--font-mono);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  color: #061109;
+  font-weight: 900;
 }
-
-.cctv-stamp-text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font: 700 11px var(--font-mono);
-  color: #ffffff;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-}
-
-.cctv-stamp-sep {
-  opacity: 0.5;
-}
-
-.cctv-top-status {
+.monitor-top-right-stamp {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  z-index: 15;
+  top: 14px;
+  right: 16px;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: rgba(13, 20, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: 800 10px var(--font-mono);
   pointer-events: none;
 }
-
-.cctv-rec-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(15, 23, 17, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
-  font: 900 10px var(--font-mono);
-  backdrop-filter: blur(4px);
-}
-
-.cctv-rec-blink {
+.rec-indicator-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #ef4444;
   box-shadow: 0 0 8px #ef4444;
-  animation: rec-blink 1.2s infinite;
+  animation: pulse-dot 1s infinite;
 }
 
-.cctv-room-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: rgba(15, 23, 17, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #e2e8f0;
-  font: 700 11px var(--font-mono);
+/* Edge Navigation Arrows */
+.cctv-edge-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 15;
+  width: 48px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  background: rgba(13, 20, 15, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
   backdrop-filter: blur(4px);
 }
+.cctv-edge-arrow:hover {
+  background: rgba(34, 197, 94, 0.85);
+  color: #061109;
+  transform: translateY(-50%) scale(1.08);
+}
+.arrow-prev { left: 0; border-radius: 0 12px 12px 0; border-left: none; }
+.arrow-next { right: 0; border-radius: 12px 0 0 12px; border-right: none; }
 
-/* Mobile & Tablet Responsiveness */
-@media (max-width: 768px) {
-  .modern-cctv-workspace {
-    padding: 8px 10px;
-  }
+/* Bottom Trigger Bar */
+.cctv-bottom-report-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+}
+.btn-trigger-report {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border-radius: 30px;
+  background: rgba(10, 16, 12, 0.92);
+  border: 1.5px solid var(--brand-amber);
+  color: #ffffff;
+  font: 800 13px var(--font-mono);
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+  transition: all 0.2s;
+}
+.btn-trigger-report:hover {
+  background: rgba(245, 158, 11, 0.25);
+  transform: scale(1.03);
+}
 
-  .modern-cctv-header {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
+/* ==========================================================================
+   4. BOTTOM LOCATION GRID (6 RECTANGLES)
+   ========================================================================== */
+.game-bottom-location-grid {
+  width: 100%;
+  max-width: 1360px;
+  margin: 12px auto 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+.location-card-box {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(15, 22, 17, 0.85);
+  border: 1.5px solid #233426;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.location-card-box:hover {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.5);
+  transform: translateY(-2px);
+}
+.card-active-view {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: var(--brand-green) !important;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.3);
+}
+.card-has-anomaly {
+  border-color: #ef4444 !important;
+  animation: pulse-card-alert 1.2s infinite;
+}
+@keyframes pulse-card-alert {
+  0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.1); }
+}
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-cam-no {
+  font: 800 10px var(--font-mono);
+  color: var(--brand-green);
+}
+.card-alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+  animation: pulse-dot 0.8s infinite;
+}
+.card-loc-name {
+  font: 900 13px var(--font-mono);
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-loc-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+}
 
-  .header-left-group {
-    grid-column: 1 / 2;
-    gap: 6px;
-  }
+/* ==========================================================================
+   5. CENTERED POPUP MODALS (REPORT & PAUSE)
+   ========================================================================== */
+.centered-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  padding: 20px;
+}
 
-  .hud-map-btn {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
+.report-anomali-card {
+  width: min(94vw, 480px);
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 20px;
+  background: #0f1611;
+  border: 2px solid var(--brand-amber);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(245, 158, 11, 0.25);
+  padding: 24px;
+}
+.modal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-title-group h2 {
+  font: 900 16px var(--font-mono);
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+.modal-btn-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #cbd5e1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.modal-btn-close:hover { background: rgba(239, 68, 68, 0.3); color: #fff; }
+.modal-target-room {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  margin-bottom: 12px;
+  font: 800 12px var(--font-mono);
+  color: #fef3c7;
+}
+.modal-instruction-text {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+.modal-category-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.btn-select-category {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(22, 34, 25, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: left;
+}
+.btn-select-category:hover {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: var(--brand-green);
+  transform: translateX(4px);
+}
+.cat-icon { font-size: 22px; flex-shrink: 0; }
+.cat-info { display: flex; flex-direction: column; gap: 2px; }
+.cat-title { font: 800 13px var(--font-mono); color: #ffffff; }
+.cat-sub { font-size: 11px; color: #94a3b8; }
 
-  .threat-status-badge {
-    padding: 4px 8px;
-    font-size: 10px;
-  }
+.btn-quick-general-report {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1.5px dashed var(--brand-amber);
+  color: #fef3c7;
+  font: 800 12px var(--font-mono);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.btn-quick-general-report:hover {
+  background: var(--brand-amber);
+  color: #061109;
+}
+.modal-btn-cancel {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  font: 700 11px var(--font-mono);
+  cursor: pointer;
+}
 
-  .header-right-group {
-    grid-column: 2 / 3;
-    justify-content: flex-end;
-    gap: 6px;
-  }
+/* Pause Menu */
+.pause-menu-card {
+  width: min(92vw, 400px);
+  padding: 30px 24px;
+  border-radius: 20px;
+  background: #0f1611;
+  border: 2px solid #233426;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+}
+.pause-menu-title {
+  font: 900 18px var(--font-mono);
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+.pause-menu-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 24px;
+}
+.pause-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pause-btn {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 12px;
+  font: 800 13px var(--font-mono);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pause-btn-resume {
+  background: var(--brand-green);
+  border: none;
+  color: #061109;
+}
+.pause-btn-resume:hover { background: #4ade80; }
+.pause-btn-sound {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+}
+.pause-btn-home {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
 
-  .hud-timer-badge, .hud-score-badge {
-    padding: 5px 10px;
-  }
-  .hud-timer-num, .hud-stat-num {
-    font-size: 14px;
-  }
+/* ==========================================================================
+   6. JUMPSCARE, TOAST & SPECIAL EFFECTS
+   ========================================================================== */
+.screen-earthquake {
+  animation: earthquake 0.12s infinite;
+}
+@keyframes earthquake {
+  0% { transform: translate(3px, -2px) rotate(0.4deg); }
+  25% { transform: translate(-4px, 3px) rotate(-0.5deg); }
+  50% { transform: translate(4px, 2px) rotate(0.3deg); }
+  75% { transform: translate(-3px, -3px) rotate(-0.4deg); }
+  100% { transform: translate(2px, 1px) rotate(0deg); }
+}
 
-  .header-center-nav {
-    grid-column: 1 / 3;
-    justify-content: space-between;
-    padding: 5px 12px;
-  }
-  .header-cam-title {
-    font-size: 12px;
-  }
+.cctv-glitch-active {
+  filter: contrast(1.5) brightness(1.2) hue-rotate(20deg);
+  transform: translate(2px, -1px);
+}
 
-  .modern-cctv-stage {
-    aspect-ratio: 16 / 9;
-    width: 100%;
-    max-height: 60vh;
-    border-radius: 10px;
-  }
+.jumpscare-terror-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 28px;
+  border-radius: 16px;
+  background: rgba(136, 19, 55, 0.95);
+  border: 2px solid #ef4444;
+  color: #ffffff;
+  font: 900 15px var(--font-mono);
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.7);
+  animation: pulse-danger-banner 0.5s infinite alternate;
+}
+@keyframes pulse-danger-banner {
+  to { transform: translate(-50%, -50%) scale(1.04); }
+}
 
-  .cctv-top-stamp {
-    top: 8px;
-    left: 8px;
-    gap: 4px;
-  }
-  .cctv-stamp-badge {
-    font-size: 9px;
-    padding: 2px 5px;
-  }
-  .cctv-stamp-text {
-    font-size: 9px;
-  }
+.report-toast-banner {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font: 800 13px var(--font-mono);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+  animation: toast-slide-down 0.25s ease-out;
+}
+@keyframes toast-slide-down {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.toast-success {
+  background: rgba(6, 78, 59, 0.95);
+  border: 1.5px solid #34d399;
+  color: #ecfdf5;
+}
+.toast-error {
+  background: rgba(136, 19, 55, 0.95);
+  border: 1.5px solid #fb7185;
+  color: #fff1f2;
+}
 
-  .cctv-top-status {
-    top: 8px;
-    right: 8px;
-    gap: 4px;
-  }
-  .cctv-rec-pill, .cctv-room-pill {
-    font-size: 9px;
-    padding: 2px 6px;
-  }
-
-  .cctv-floating-arrow {
-    width: 36px;
-    height: 54px;
-  }
-
-  .report-trigger-btn {
-    font-size: 10px;
-    padding: 6px 12px;
-  }
-
-  .report-dialog-centered {
-    width: 95vw;
-    padding: 18px 14px;
-    max-height: 88vh;
-  }
-  .report-option-btn {
-    padding: 10px 12px;
-    gap: 10px;
-  }
+/* ==========================================================================
+   7. RESULTS / GAME OVER / VICTORY SCREENS
+   ========================================================================== */
+.horror-result-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.result-shell-gameover {
+  background: radial-gradient(circle at 50% 30%, rgba(239, 68, 68, 0.15), transparent 60%), #060907;
+}
+.result-shell-victory {
+  background: radial-gradient(circle at 50% 30%, rgba(34, 197, 94, 0.15), transparent 60%), #060907;
+}
+.result-modal-box {
+  width: min(94vw, 500px);
+  padding: 36px 30px;
+  border-radius: 24px;
+  background: #0f1611;
+  border: 2px solid #233426;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+}
+.result-skull-badge, .result-trophy-badge {
+  font-size: 52px;
+  margin-bottom: 10px;
+}
+.result-title-red {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ef4444;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.result-title-green {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--brand-green);
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.result-desc-text {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+.result-score-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(7, 12, 9, 0.9);
+  border: 1px solid #1c2b20;
+  margin-bottom: 24px;
+}
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.summary-label {
+  font: 800 10px var(--font-mono);
+  color: #64748b;
+}
+.summary-val {
+  font: 900 20px var(--font-mono);
+  color: #ffffff;
+}
+.result-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.btn-result-action {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 12px;
+  border: none;
+  background: var(--brand-green);
+  color: #061109;
+  font: 900 14px var(--font-mono);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-result-action:hover {
+  background: #4ade80;
+}
+.btn-result-secondary {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font: 700 12px var(--font-mono);
+  cursor: pointer;
 }

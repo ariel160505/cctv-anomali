@@ -1,161 +1,241 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
-import { Camera, Play, Sparkles, Trophy } from 'lucide-react'
-import { motion } from 'motion/react'
-import { ANOMALY_CATEGORIES, type LeaderboardEntry } from '@/lib/game-data'
-import { PatrolMascot } from './mascot'
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import {
+  AlertTriangle,
+  BookOpen,
+  Camera,
+  Heart,
+  HelpCircle,
+  Monitor,
+  Play,
+  Radio,
+  Volume2,
+  VolumeX,
+  X,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+
+const PREVIEW_IMAGES = [
+  '/images/game/gedung-smk/GSMK1-asli.jpg',
+  '/images/game/gedung-smp/GSMP1-asli.jpg',
+  '/images/game/kantin/K1-asli.jpg',
+  '/images/game/kebun/KBN1-asli.jpg',
+  '/images/game/lapangan/LP-asli.jpg',
+  '/images/game/parkiran/P1-Asli.jpg',
+  '/images/game/gedung-smk/GSMK2-asli.jpg',
+  '/images/game/kantin/K2-asli.jpg',
+]
 
 type LobbyScreenProps = {
-  leaderboard: LeaderboardEntry[]
-  playerName: string
-  onPlayerNameChange: (value: string) => void
+  isMuted: boolean
+  onToggleMute: () => void
   onStart: () => void
 }
 
-export function LobbyScreen({
-  leaderboard,
-  playerName,
-  onPlayerNameChange,
-  onStart,
-}: LobbyScreenProps) {
-  const [nameError, setNameError] = useState('')
+export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps) {
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [showGuide, setShowGuide] = useState(false)
+  const [flicker, setFlicker] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!playerName.trim()) {
-      setNameError('Tulis nama kamu dulu ya!')
-      return
-    }
-    if (playerName.trim().length < 2) {
-      setNameError('Nama minimal 2 huruf!')
-      return
-    }
-    setNameError('')
-    onStart()
-  }
+  // Automatic CCTV camera feed cycle in the monitor
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFlicker(true)
+      setTimeout(() => {
+        setCurrentIdx((prev) => (prev + 1) % PREVIEW_IMAGES.length)
+        setFlicker(false)
+      }, 120)
+    }, 1800)
+
+    return () => clearInterval(timer)
+  }, [])
 
   return (
-    <main className="arcade-lobby-shell">
-      {/* Top Simple Brand Badge */}
-      <header className="arcade-top-header">
-        <div className="arcade-logo-badge">
-          <Camera className="w-5 h-5 text-emerald-400" />
-          <span>CCTV PATROL SEKOLAH</span>
+    <main className="horror-lobby-shell">
+      {/* Background Ambience Grid */}
+      <div className="horror-grid-bg" />
+
+      {/* Header Bar */}
+      <header className="lobby-top-bar">
+        <div className="brand-terminal-badge">
+          <Camera className="w-4 h-4 text-emerald-400" />
+          <span>SECURITY SURVEILLANCE UNIT</span>
         </div>
-        <div className="arcade-live-badge">
-          <span className="live-dot" /> 7 CCTV AKTIF • 5 MENIT
-        </div>
+        <button
+          type="button"
+          className="btn-sound-toggle"
+          onClick={onToggleMute}
+          title={isMuted ? 'Nyalakan Musik' : 'Matikan Musik'}
+        >
+          {isMuted ? (
+            <>
+              <VolumeX className="w-4 h-4 text-rose-400" />
+              <span>MUSIK : OFF</span>
+            </>
+          ) : (
+            <>
+              <Volume2 className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span>MUSIK : ON</span>
+            </>
+          )}
+        </button>
       </header>
 
-      {/* Main Hero Card */}
-      <div className="arcade-main-container">
-        {/* Left Side: Game Title, Form, & Top 3 */}
-        <motion.div
-          className="arcade-card arcade-left-card"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          {/* Badge */}
-          <div className="game-category-tag">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>GAME KETELITIAN MATA & ANOMALI</span>
-          </div>
-
-          {/* Big Fun Title */}
-          <h1 className="arcade-title">
-            RAZIA <span className="title-highlight">PEMBOLOS!</span>
+      {/* Main Center Container */}
+      <div className="lobby-center-container">
+        {/* Game Title */}
+        <div className="lobby-title-wrap">
+          <span className="game-sys-tag">CLASSIFIED ANOMALY MONITOR</span>
+          <h1 className="horror-main-title">
+            CCTV : <span className="title-red">AQIS</span>
           </h1>
-          <p className="arcade-subtitle">
-            Pantau CCTV sekolah selama <strong>5 menit</strong>! Perhatikan jika ada perubahan ganjil pada gambar dan laporkan kejadiannya.
+          <p className="horror-tagline">
+            Protokol Pengawasan Keamanan & Deteksi Anomali Sekolah
           </p>
+        </div>
 
-          {/* 4 Anomaly Categories Quick Guide */}
-          <div className="anomaly-guide-pills">
-            {ANOMALY_CATEGORIES.map((cat) => (
-              <div key={cat.type} className="anomaly-pill">
-                <span className="pill-icon">{cat.icon}</span>
-                <span className="pill-text">{cat.label}</span>
+        {/* Central Animated CCTV CRT Monitor */}
+        <div className="cctv-crt-monitor-case">
+          <div className="crt-monitor-bezel">
+            <div className={`crt-screen-viewport ${flicker ? 'crt-flicker-active' : ''}`}>
+              {/* Cycling CCTV camera image */}
+              <div className="crt-image-layer">
+                <Image
+                  src={PREVIEW_IMAGES[currentIdx]}
+                  alt="CCTV Feed Live Preview"
+                  fill
+                  priority
+                  sizes="(max-width: 900px) 100vw, 750px"
+                  className="crt-img"
+                />
               </div>
-            ))}
-          </div>
 
-          {/* Player Name Form */}
-          <form className="arcade-form" onSubmit={handleSubmit}>
-            <label htmlFor="playerName" className="arcade-label">
-              SIAPA NAMA KAMU?
-            </label>
-            <div className="arcade-input-wrapper">
-              <input
-                id="playerName"
-                type="text"
-                value={playerName}
-                onChange={(e) => {
-                  onPlayerNameChange(e.target.value.slice(0, 20))
-                  if (nameError) setNameError('')
-                }}
-                placeholder="Ketik namamu di sini..."
-                maxLength={20}
-                className={nameError ? 'input-error' : ''}
-                autoFocus
-              />
-              <span className="char-count">{playerName.length}/20</span>
-            </div>
+              {/* CRT Scanlines, Curve & Glitch */}
+              <div className="crt-scanlines" />
+              <div className="crt-glow-overlay" />
 
-            {nameError && <p className="error-text">{nameError}</p>}
-
-            {/* Big Action Button */}
-            <button type="submit" className="arcade-play-btn">
-              <Play className="w-6 h-6 fill-current" />
-              <span>MULAI PATROLI (5 MENIT)</span>
-            </button>
-          </form>
-
-          {/* Top 3 High Scores Card */}
-          <div className="arcade-leaderboard-card">
-            <div className="leaderboard-header">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span>3 SKOR TERTINGGI (TOP SCORE)</span>
-            </div>
-            <div className="leaderboard-slots">
-              {leaderboard.slice(0, 3).map((entry, idx) => {
-                const medals = ['🥇', '🥈', '🥉']
-                return (
-                  <div key={idx} className={`leaderboard-slot slot-${idx + 1}`}>
-                    <span className="slot-medal">{medals[idx]}</span>
-                    <span className="slot-name">{entry.name}</span>
-                    <span className="slot-score">
-                      {entry.score} <small>PTS</small>
-                    </span>
-                  </div>
-                )
-              })}
+              {/* Monitor Overlay Stamps */}
+              <div className="crt-stamp-top">
+                <span className="crt-rec-dot" />
+                <span>REC • LIVE CAM-0{currentIdx + 1}</span>
+              </div>
+              <div className="crt-stamp-bottom">
+                <span>SIGNAL: 100% • 30 FPS • AQIS PROTOCOL</span>
+              </div>
             </div>
           </div>
-        </motion.div>
+          <div className="crt-monitor-stand" />
+        </div>
 
-        {/* Right Side: Truant Student Mascot */}
-        <motion.div
-          className="arcade-card arcade-mascot-card"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.45, delay: 0.1 }}
-        >
-          <div className="mascot-card-header">
-            <span className="mascot-tag">TARGET UTAMA</span>
-            <h2 className="mascot-title">SI RAJA BOLOS</h2>
-          </div>
+        {/* Action Controls */}
+        <div className="lobby-action-box">
+          <button
+            type="button"
+            className="btn-play-game"
+            onClick={onStart}
+          >
+            <Play className="w-6 h-6 fill-current text-emerald-950" />
+            <span>MULAI TUGAS (PLAY)</span>
+          </button>
 
-          <div className="mascot-visual-stage">
-            <PatrolMascot />
-          </div>
+          <button
+            type="button"
+            className="btn-game-guide"
+            onClick={() => setShowGuide(true)}
+          >
+            <BookOpen className="w-4 h-4 text-emerald-400" />
+            <span>PANDUAN PETUGAS (GAME GUIDE)</span>
+          </button>
+        </div>
 
-          <div className="mascot-card-footer">
-            <p>Dia dan barang-barang anomali bersembunyi di CCTV. Temukan dan laporkan sebelum bel berbunyi!</p>
-          </div>
-        </motion.div>
+        <footer className="lobby-device-notice">
+          <span>🖥️ GAME INI KHUSUS UNTUK PERANGKAT KOMPUTER / LAPTOP</span>
+        </footer>
       </div>
+
+      {/* Game Guide Popup Modal */}
+      <AnimatePresence>
+        {showGuide && (
+          <div className="guide-modal-overlay" onClick={() => setShowGuide(false)}>
+            <motion.div
+              className="guide-modal-card"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 15 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="guide-header">
+                <div className="guide-title-left">
+                  <BookOpen className="w-5 h-5 text-emerald-400" />
+                  <h2>PANDUAN OPERASIONAL CCTV : AQIS</h2>
+                </div>
+                <button
+                  type="button"
+                  className="guide-close-btn"
+                  onClick={() => setShowGuide(false)}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="guide-body-content">
+                <div className="guide-rule-item">
+                  <div className="rule-badge">1</div>
+                  <div className="rule-desc">
+                    <strong>⏱️ Durasi Bertahan 10 Menit</strong>
+                    <p>Tugasmu adalah memantau 6 kamera CCTV sekolah selama 10 menit penuh. Bertahanlah hingga waktu habis.</p>
+                  </div>
+                </div>
+
+                <div className="guide-rule-item">
+                  <div className="rule-badge">2</div>
+                  <div className="rule-desc">
+                    <strong>❤️ Sistem 3 Nyawa (Tiga Hati)</strong>
+                    <p>Kamu hanya memiliki 3 nyawa. Jika kamu melaporkan anomali yang salah (alarm palsu), kamu kehilangan 1 nyawa. Kehabisan 3 nyawa berarti GAME OVER!</p>
+                  </div>
+                </div>
+
+                <div className="guide-rule-item">
+                  <div className="rule-badge">3</div>
+                  <div className="rule-desc">
+                    <strong>👁️ 6 Titik Lokasi Kamera</strong>
+                    <p>Kamera meliputi: GEDUNG SMK, GEDUNG SMP, KANTIN, KEBUN, LAPANGAN, dan PARKIRAN. Klik kotak lokasi di bawah layar atau gunakan tombol panah kiri-kanan pada keyboard.</p>
+                  </div>
+                </div>
+
+                <div className="guide-rule-item">
+                  <div className="rule-badge">4</div>
+                  <div className="rule-desc">
+                    <strong>🚨 Cara Melaporkan Anomali</strong>
+                    <p>Jika kamu melihat kejanggalan (benda hilang, sosok misterius, siswa mengendap-endap, atau perubahan aneh), segera klik tombol <strong>LAPORKAN ANOMALI</strong>.</p>
+                  </div>
+                </div>
+
+                <div className="guide-rule-item">
+                  <div className="rule-badge">5</div>
+                  <div className="rule-desc">
+                    <strong>⚠️ Peringatan Entitas Khusus</strong>
+                    <p>Beberapa anomali bersikap agresif dan dapat mengganggu sinyal monitor saat dilaporkan. Tetap tenang dan waspada!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="guide-footer">
+                <button
+                  type="button"
+                  className="btn-guide-gotit"
+                  onClick={() => setShowGuide(false)}
+                >
+                  SAYA MENGERTI, SIAP BERTUGAS
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   )
 }
