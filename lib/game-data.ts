@@ -366,3 +366,55 @@ export function formatTime(seconds: number): string {
   const s = seconds % 60
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
+
+export type LeaderboardEntry = {
+  id: string
+  name: string
+  role: string
+  score: number
+  date: string
+}
+
+export const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
+  { id: '1', name: 'Satpam Bambang', role: 'Security', score: 120, date: 'Hari ini' },
+  { id: '2', name: 'Pak Joko', role: 'Penjaga Sekolah', score: 90, date: 'Kemarin' },
+  { id: '3', name: 'Guru Piket Ani', role: 'Guru Piket', score: 70, date: '2 hari lalu' },
+  { id: '4', name: 'Mang Ujang', role: 'Staff Kebersihan', score: 50, date: '3 hari lalu' },
+  { id: '5', name: 'Kang Asep', role: 'Petugas Gerbang', score: 30, date: '4 hari lalu' },
+]
+
+export function getLeaderboard(): LeaderboardEntry[] {
+  if (typeof window === 'undefined') return DEFAULT_LEADERBOARD
+  try {
+    const raw = localStorage.getItem('cctv_aqis_leaderboard')
+    if (!raw) {
+      localStorage.setItem('cctv_aqis_leaderboard', JSON.stringify(DEFAULT_LEADERBOARD))
+      return DEFAULT_LEADERBOARD
+    }
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed.slice(0, 5) : DEFAULT_LEADERBOARD
+  } catch {
+    return DEFAULT_LEADERBOARD
+  }
+}
+
+export function savePlayerScore(name: string, score: number): LeaderboardEntry[] {
+  if (typeof window === 'undefined') return DEFAULT_LEADERBOARD
+  try {
+    const current = getLeaderboard()
+    const newEntry: LeaderboardEntry = {
+      id: Date.now().toString(),
+      name: name.trim() || 'Petugas Kamu',
+      role: 'Petugas Patroli',
+      score,
+      date: 'Baru saja',
+    }
+    const combined = [...current, newEntry]
+    combined.sort((a, b) => b.score - a.score)
+    const top5 = combined.slice(0, 5)
+    localStorage.setItem('cctv_aqis_leaderboard', JSON.stringify(top5))
+    return top5
+  } catch {
+    return DEFAULT_LEADERBOARD
+  }
+}

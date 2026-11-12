@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Menu,
   Play,
+  Radio,
   RotateCcw,
   Shield,
   ShieldAlert,
@@ -30,6 +31,7 @@ import {
   ALL_CAMERA_ANGLES,
   ANOMALY_REPORT_OPTIONS,
   formatTime,
+  savePlayerScore,
   type ActiveAnomalyState,
   type AnomalyType,
   type GameLocation,
@@ -94,6 +96,7 @@ export function CctvPatrolGame() {
           clearInterval(timer)
           setScreen('victory')
           playSfx('victory')
+          savePlayerScore('Petugas Patroli', score)
           try {
             void confetti({ particleCount: 150, spread: 90 })
           } catch {}
@@ -104,15 +107,18 @@ export function CctvPatrolGame() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [screen, isPaused, playSfx])
+  }, [screen, isPaused, playSfx, score])
 
   // Check Game Over when lives reach 0
   useEffect(() => {
     if (screen === 'game' && lives <= 0) {
       setScreen('gameover')
       playSfx('gameOver')
+      if (score > 0) {
+        savePlayerScore('Petugas Patroli', score)
+      }
     }
-  }, [screen, lives, playSfx])
+  }, [screen, lives, playSfx, score])
 
   // Periodic Anomaly Spawner across the 6 locations
   useEffect(() => {
@@ -418,213 +424,217 @@ export function CctvPatrolGame() {
             </div>
           </header>
 
-          {/* Central Surveillance Monitor Container (100% Width & Height Fill) */}
-          <section className="game-monitor-stage-wrap">
-            <div
-              className={`game-cctv-monitor ${screenGlitch ? 'cctv-glitch-active' : ''}`}
-              onClick={() => setReportModalOpen(true)}
-              role="group"
-              aria-label={`Feed CCTV ${currentLocation.name}`}
-            >
-              {/* CCTV Feed Photo Image - 100% Full View */}
-              <div className="cctv-photo-wrapper">
-                <Image
-                  src={activeImage}
-                  alt={`Feed CCTV ${currentLocation.name}`}
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="cctv-photo"
-                />
-              </div>
-
-              {/* Scanlines, Vignette & Noise */}
-              <div className="cctv-scanlines-layer" />
-              <div className="cctv-vignette-layer" />
-
-              {/* Monitor Overlay Stamps */}
-              <div className="monitor-top-left-stamp">
-                <span className="stamp-cam-badge">CAM-{currentLocation.camNumber}</span>
-                <span className="stamp-text-time">{liveClock}</span>
-                <span className="stamp-text-loc">• {currentLocation.name}</span>
-                {currentLocation.angles.length > 1 && (
-                  <span className="stamp-text-angle">• {currentAngle.name}</span>
-                )}
-              </div>
-
-              <div className="monitor-top-right-stamp">
-                <span className="rec-indicator-dot" />
-                <span className="rec-text">REC • LIVE 30FPS</span>
-              </div>
-
-              {/* Left / Right Camera Switch Floating Arrows (Steps through ALL angles sequentially!) */}
-              <button
-                type="button"
-                className="cctv-edge-arrow arrow-prev"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigateCctv('prev')
-                }}
-                title="Sudut / Kamera Sebelumnya (Panah Kiri / A)"
+          {/* Main Workspace Stage: Monitor on Left/Center + Right Sidebar (Bus Seats / Direct Report) */}
+          <div className="game-main-content-row">
+            {/* Central Surveillance Monitor */}
+            <section className="game-monitor-stage-wrap">
+              <div
+                className={`game-cctv-monitor ${screenGlitch ? 'cctv-glitch-active' : ''}`}
+                onClick={() => setReportModalOpen(true)}
+                role="group"
+                aria-label={`Feed CCTV ${currentLocation.name}`}
               >
-                ◀
-              </button>
-
-              <button
-                type="button"
-                className="cctv-edge-arrow arrow-next"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigateCctv('next')
-                }}
-                title="Sudut / Kamera Berikutnya (Panah Kanan / D)"
-              >
-                ▶
-              </button>
-
-              {/* Jumpscare / Special Event Alert Banner */}
-              {jumpscareAlert && (
-                <div className="jumpscare-terror-banner">
-                  <AlertOctagon className="w-8 h-8 text-rose-500 animate-spin" />
-                  <span>{jumpscareAlert}</span>
+                {/* CCTV Feed Photo Image - 100% Full View */}
+                <div className="cctv-photo-wrapper">
+                  <Image
+                    src={activeImage}
+                    alt={`Feed CCTV ${currentLocation.name}`}
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="cctv-photo"
+                  />
                 </div>
-              )}
 
-              {/* Feedback Toast Banner */}
-              {reportFeedback && (
-                <div
-                  className={`report-toast-banner ${
-                    reportFeedback.success ? 'toast-success' : 'toast-error'
-                  }`}
-                >
-                  {reportFeedback.success ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-300" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-rose-300" />
+                {/* Scanlines, Vignette & Noise */}
+                <div className="cctv-scanlines-layer" />
+                <div className="cctv-vignette-layer" />
+
+                {/* Monitor Overlay Stamps */}
+                <div className="monitor-top-left-stamp">
+                  <span className="stamp-cam-badge">CAM-{currentLocation.camNumber}</span>
+                  <span className="stamp-text-time">{liveClock}</span>
+                  <span className="stamp-text-loc">• {currentLocation.name}</span>
+                  {currentLocation.angles.length > 1 && (
+                    <span className="stamp-text-angle">• {currentAngle.name}</span>
                   )}
-                  <span>{reportFeedback.text}</span>
                 </div>
-              )}
 
-              {/* Bottom Quick Report Bar */}
-              <div className="cctv-bottom-report-bar">
+                <div className="monitor-top-right-stamp">
+                  <span className="rec-indicator-dot" />
+                  <span className="rec-text">REC • LIVE 30FPS</span>
+                </div>
+
+                {/* Left / Right Camera Switch Floating Arrows (Steps through ALL angles sequentially!) */}
                 <button
                   type="button"
-                  className="btn-trigger-report"
+                  className="cctv-edge-arrow arrow-prev"
                   onClick={(e) => {
                     e.stopPropagation()
-                    setReportModalOpen(true)
+                    navigateCctv('prev')
                   }}
+                  title="Sudut / Kamera Sebelumnya (Panah Kiri / A)"
                 >
-                  <AlertTriangle className="w-5 h-5 text-amber-400 animate-pulse" />
-                  <span>LAPORKAN ANOMALI DI RUANGAN INI (KLIK / TEKAN R)</span>
+                  ◀
                 </button>
-              </div>
-            </div>
-          </section>
 
-          {/* Bottom Grid: 6 Clean Location Rectangles (NO RED SPOILERS!) */}
-          <footer className="game-bottom-location-grid">
-            {GAME_LOCATIONS.map((loc, idx) => {
-              const isCurrent = locationIndex === idx
-
-              return (
                 <button
-                  key={loc.id}
                   type="button"
-                  className={`location-card-box ${isCurrent ? 'card-active-view' : ''}`}
-                  onClick={() => switchLocation(idx)}
-                  title={`Pantau ${loc.name}`}
+                  className="cctv-edge-arrow arrow-next"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateCctv('next')
+                  }}
+                  title="Sudut / Kamera Berikutnya (Panah Kanan / D)"
                 >
-                  <div className="card-top-row">
-                    <span className="card-cam-no">CAM-0{idx + 1}</span>
-                    <span className="card-cam-dot" />
-                  </div>
-                  <div className="card-loc-name">{loc.name}</div>
-                  <div className="card-loc-sub">
-                    {loc.angles.length} Sudut Kamera {isCurrent && '• AKTIF'}
-                  </div>
+                  ▶
                 </button>
-              )
-            })}
-          </footer>
 
-          {/* Centered Report Modal */}
-          <AnimatePresence>
-            {reportModalOpen && (
-              <div
-                className="centered-modal-overlay"
-                onClick={() => setReportModalOpen(false)}
-              >
-                <motion.div
-                  className="report-anomali-card"
-                  onClick={(e) => e.stopPropagation()}
-                  initial={{ opacity: 0, scale: 0.9, y: 15 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 15 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  <div className="modal-card-header">
-                    <div className="modal-title-group">
-                      <AlertTriangle className="w-5 h-5 text-amber-400 animate-pulse" />
-                      <h2>LAPORKAN ANOMALI</h2>
-                    </div>
-                    <button
-                      type="button"
-                      className="modal-btn-close"
-                      onClick={() => setReportModalOpen(false)}
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                {/* Jumpscare / Special Event Alert Banner */}
+                {jumpscareAlert && (
+                  <div className="jumpscare-terror-banner">
+                    <AlertOctagon className="w-8 h-8 text-rose-500 animate-spin" />
+                    <span>{jumpscareAlert}</span>
+                  </div>
+                )}
+
+                {/* Feedback Toast Banner */}
+                {reportFeedback && (
+                  <div
+                    className={`report-toast-banner ${
+                      reportFeedback.success ? 'toast-success' : 'toast-error'
+                    }`}
+                  >
+                    {reportFeedback.success ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-rose-300" />
+                    )}
+                    <span>{reportFeedback.text}</span>
+                  </div>
+                )}
+
+                {/* Bottom Quick Trigger Pill */}
+                <div className="cctv-bottom-report-bar">
+                  <button
+                    type="button"
+                    className="btn-trigger-report"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setReportModalOpen(true)
+                    }}
+                  >
+                    <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse" />
+                    <span>LAPORKAN ANOMALI (KLIK / TEKAN R)</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Right Sidebar: Denah Bus-Seat Lokasi ATAU Panel Lapor Anomali Ringkas */}
+            <aside className="game-right-sidebar-panel">
+              {!reportModalOpen ? (
+                /* STATE 1: DENAH CCTV ALA KURSI BUS */
+                <div className="bus-plan-card">
+                  <div className="bus-plan-header">
+                    <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+                    <span className="bus-plan-title">DENAH CCTV (6 TITIK)</span>
                   </div>
 
-                  <div className="modal-target-room">
-                    <span>Ruangan Target:</span>
-                    <strong>{currentLocation.name} (CAM-{currentLocation.camNumber})</strong>
-                  </div>
-
-                  <p className="modal-instruction-text">
-                    Pilih jenis anomali yang kamu temukan di kamera ini. Hati-hati, salah menebak akan
-                    mengurangi <strong>1 Nyawa (Hati)</strong>!
-                  </p>
-
-                  <div className="modal-category-buttons">
-                    {ANOMALY_REPORT_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.type}
-                        type="button"
-                        className="btn-select-category"
-                        onClick={() => handleExecuteReport(opt.type)}
-                      >
-                        <span className="cat-icon">{opt.icon}</span>
-                        <div className="cat-info">
-                          <span className="cat-title">{opt.label}</span>
-                          <span className="cat-sub">{opt.description}</span>
-                        </div>
-                      </button>
-                    ))}
-
-                    {/* Quick general report button */}
-                    <button
-                      type="button"
-                      className="btn-quick-general-report"
-                      onClick={() => handleExecuteReport()}
-                    >
-                      <span>⚡ LAPORKAN LANGSUNG ANOMALI INI</span>
-                    </button>
+                  <div className="bus-seats-grid">
+                    {GAME_LOCATIONS.map((loc, idx) => {
+                      const isCurrent = locationIndex === idx
+                      return (
+                        <button
+                          key={loc.id}
+                          type="button"
+                          className={`bus-seat-card ${isCurrent ? 'seat-card-active' : ''}`}
+                          onClick={() => switchLocation(idx)}
+                          title={`Beralih ke CAM-${loc.camNumber} ${loc.name}`}
+                        >
+                          <div className="seat-top-badge">CAM-{loc.camNumber}</div>
+                          <div className="seat-loc-name">{loc.name}</div>
+                          <div className="seat-loc-sub">{loc.angles.length} Sudut</div>
+                          {isCurrent && <span className="seat-live-dot" />}
+                        </button>
+                      )
+                    })}
                   </div>
 
                   <button
                     type="button"
-                    className="modal-btn-cancel"
+                    className="btn-bus-report-action"
+                    onClick={() => setReportModalOpen(true)}
+                  >
+                    <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse" />
+                    <span>LAPORKAN ANOMALI (R)</span>
+                  </button>
+                </div>
+              ) : (
+                /* STATE 2: PANEL LAPOR ANOMALI RINGKAS (NIMPAH DI KANAN, MONITOR TETAP JERNIH TRANSPARAN!) */
+                <motion.div
+                  className="report-sidebar-card"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <div className="report-sidebar-top">
+                    <div className="report-sidebar-title-row">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse" />
+                      <h2 className="report-sidebar-title">LAPOR ANOMALI</h2>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-sidebar-close"
+                      onClick={() => setReportModalOpen(false)}
+                      title="Tutup / Batal (ESC)"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="report-target-indicator">
+                    <span className="target-label">TARGET:</span>
+                    <strong className="target-name">CAM-{currentLocation.camNumber} {currentLocation.name}</strong>
+                  </div>
+
+                  {/* Opsi Langsung Tanpa Teks Deskripsi Panjang */}
+                  <div className="report-direct-buttons">
+                    {ANOMALY_REPORT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.type}
+                        type="button"
+                        className="btn-direct-report-item"
+                        onClick={() => handleExecuteReport(opt.type)}
+                      >
+                        <span className="direct-opt-icon">{opt.icon}</span>
+                        <span className="direct-opt-name">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Tombol Lapor Langsung Cepat */}
+                  <button
+                    type="button"
+                    className="btn-instant-confirm"
+                    onClick={() => handleExecuteReport()}
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>⚡ LAPOR LANGSUNG</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-sidebar-cancel-action"
                     onClick={() => setReportModalOpen(false)}
                   >
-                    Batal / Lanjut Memantau
+                    Batal (ESC)
                   </button>
                 </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
+              )}
+            </aside>
+          </div>
 
           {/* Pause Hamburger Menu Modal */}
           <AnimatePresence>
