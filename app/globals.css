@@ -1069,33 +1069,6 @@ body {
 .arrow-prev { left: 0; border-radius: 0 12px 12px 0; border-left: none; }
 .arrow-next { right: 0; border-radius: 12px 0 0 12px; border-right: none; }
 
-/* Bottom Trigger Bar */
-.cctv-bottom-report-bar {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 15;
-}
-.btn-trigger-report {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 22px;
-  border-radius: 30px;
-  background: rgba(10, 16, 12, 0.92);
-  border: 1.5px solid var(--brand-amber);
-  color: #ffffff;
-  font: 800 13px var(--font-mono);
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
-  transition: all 0.2s;
-}
-.btn-trigger-report:hover {
-  background: rgba(245, 158, 11, 0.25);
-  transform: scale(1.03);
-}
-
 /* ==========================================================================
    4. PAUSE MENU & RESULTS MODALS
    ========================================================================== */

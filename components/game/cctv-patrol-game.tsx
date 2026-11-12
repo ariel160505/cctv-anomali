@@ -543,21 +543,6 @@ export function CctvPatrolGame() {
                     <span>{reportFeedback.text}</span>
                   </div>
                 )}
-
-                {/* Bottom Quick Trigger Pill */}
-                <div className="cctv-bottom-report-bar">
-                  <button
-                    type="button"
-                    className="btn-trigger-report"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setReportModalOpen(true)
-                    }}
-                  >
-                    <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse" />
-                    <span>LAPORKAN ANOMALI (KLIK / TEKAN R)</span>
-                  </button>
-                </div>
               </div>
             </section>
 
