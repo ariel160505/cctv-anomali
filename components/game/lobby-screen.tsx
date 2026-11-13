@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   BookOpen,
   Camera,
+  Download,
   Heart,
   HelpCircle,
   Monitor,
@@ -41,10 +42,38 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
   const [showGuide, setShowGuide] = useState(false)
   const [flicker, setFlicker] = useState(false)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
     setLeaderboard(getLeaderboard())
+
+    if (typeof window !== 'undefined') {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        Boolean((window.navigator as any).standalone)
+      setIsInstalled(isStandalone)
+
+      const handleInstalled = () => setIsInstalled(true)
+      window.addEventListener('pwa-installed', handleInstalled)
+      return () => window.removeEventListener('pwa-installed', handleInstalled)
+    }
   }, [])
+
+  const handleInstallClick = async () => {
+    if (typeof window === 'undefined') return
+    const promptEvent = (window as any).__pwaInstallPrompt
+    if (promptEvent) {
+      promptEvent.prompt()
+      const choice = await promptEvent.userChoice
+      if (choice && choice.outcome === 'accepted') {
+        setIsInstalled(true)
+      }
+    } else {
+      alert(
+        'Untuk memasang game ini di komputer/laptop:\n\n1. Klik ikon "Install" (layar/komputer kecil) di bilah alamat browser kamu (Google Chrome / Microsoft Edge).\n2. Atau klik menu titik tiga browser (⋮) lalu pilih "Install CCTV : Aqis".\n\nGame akan terpasang sebagai aplikasi mandiri di komputer!'
+      )
+    }
+  }
 
   // Automatic CCTV camera feed cycle in the monitor
   useEffect(() => {
@@ -70,24 +99,37 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
           <Camera className="w-4 h-4 text-emerald-400" />
           <span>SECURITY SURVEILLANCE UNIT</span>
         </div>
-        <button
-          type="button"
-          className="btn-sound-toggle"
-          onClick={onToggleMute}
-          title={isMuted ? 'Nyalakan Musik' : 'Matikan Musik'}
-        >
-          {isMuted ? (
-            <>
-              <VolumeX className="w-4 h-4 text-rose-400" />
-              <span>MUSIK : OFF</span>
-            </>
-          ) : (
-            <>
-              <Volume2 className="w-4 h-4 text-emerald-400 animate-pulse" />
-              <span>MUSIK : ON</span>
-            </>
+        <div className="flex items-center gap-2.5">
+          {!isInstalled && (
+            <button
+              type="button"
+              className="btn-sound-toggle"
+              onClick={handleInstallClick}
+              title="Pasang CCTV : Aqis sebagai Aplikasi Desktop (PWA)"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>PASANG APLIKASI (PWA)</span>
+            </button>
           )}
-        </button>
+          <button
+            type="button"
+            className="btn-sound-toggle"
+            onClick={onToggleMute}
+            title={isMuted ? 'Nyalakan Musik' : 'Matikan Musik'}
+          >
+            {isMuted ? (
+              <>
+                <VolumeX className="w-4 h-4 text-rose-400" />
+                <span>MUSIK : OFF</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-4 h-4 text-emerald-400 animate-pulse" />
+                <span>MUSIK : ON</span>
+              </>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Main Lobby Content (Monitor & Right Leaderboard Sidebar) */}

@@ -1,28 +1,42 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { PwaRegister } from '@/components/pwa-register'
 import './globals.css'
 
 export const metadata: Metadata = {
   title: 'CCTV : Aqis - Surveillance Anomaly Protocol',
-  description: 'Protokol Pengawasan Keamanan & Deteksi Anomali Sekolah. Bertahan selama 10 menit dengan 3 nyawa.',
+  description: 'Protokol Pengawasan Keamanan & Deteksi Anomali Sekolah. Bertahan selama 13 menit dengan 3 nyawa.',
   applicationName: 'CCTV : Aqis',
-  generator: 'v0.app',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'CCTV : Aqis',
+  },
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
+        url: '/icons/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
       },
       {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
+        url: '/icons/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
       },
       {
         url: '/icon.svg',
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: [
+      {
+        url: '/icons/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+    ],
   },
 }
 
@@ -42,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body className="antialiased">
+        <PwaRegister />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
