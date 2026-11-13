@@ -230,8 +230,8 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
                 <div className="guide-rule-item">
                   <div className="rule-badge">1</div>
                   <div className="rule-desc">
-                    <strong>⏱️ Durasi Bertahan 10 Menit</strong>
-                    <p>Tugasmu adalah memantau 6 kamera CCTV sekolah selama 10 menit penuh. Bertahanlah hingga waktu habis.</p>
+                    <strong>⏱️ Durasi Bertahan 13 Menit</strong>
+                    <p>Tugasmu adalah memantau 6 kamera CCTV sekolah selama 13 menit penuh. 2 menit awal aman untuk menghafal lokasi, setelah itu deteksi seluruh anomali hingga fajar tiba.</p>
                   </div>
                 </div>
 

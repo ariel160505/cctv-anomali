@@ -29,17 +29,19 @@ import { LobbyScreen } from '@/components/game/lobby-screen'
 import {
   GAME_LOCATIONS,
   ALL_CAMERA_ANGLES,
+  ALL_GAME_ANOMALIES,
   ANOMALY_REPORT_OPTIONS,
   formatTime,
   savePlayerScore,
   type ActiveAnomalyState,
   type AnomalyType,
   type GameLocation,
+  type LocationAnomalyItem,
 } from '@/lib/game-data'
 import { useGameAudio } from '@/hooks/use-game-audio'
 import Image from 'next/image'
 
-const GAME_DURATION = 600 // 10 minutes = 600 seconds
+const GAME_DURATION = 780 // 13 minutes = 780 seconds
 const MAX_LIVES = 3
 
 type ScreenState = 'lobby' | 'game' | 'gameover' | 'victory'
@@ -65,6 +67,7 @@ export function CctvPatrolGame() {
 
   const reportedAnomalyIdsRef = useRef<string[]>([])
   const activeAnomaliesRef = useRef<ActiveAnomalyState[]>([])
+  const anomalyQueueRef = useRef<LocationAnomalyItem[]>([])
   const secondsSinceSpawnRef = useRef(0)
 
   useEffect(() => {
@@ -125,50 +128,47 @@ export function CctvPatrolGame() {
         const newTime = prev - 1
         const elapsed = GAME_DURATION - newTime
 
-        // Grace Period: 2 minutes (120s)
+        // Grace Period: 2 minutes (120s) so player can explore & memorize baseline photos.
         if (elapsed >= 120) {
           secondsSinceSpawnRef.current += 1
 
-          // Spawn immediately at 120s (08:00 on clock), then every 20 seconds
-          if (elapsed === 120 || secondsSinceSpawnRef.current >= 20) {
+          // Spawn every 24 seconds (starting at 120s, i.e. 11:00 on clock)
+          // 24s jeda ensures all 27 anomalies appear gradually without overwhelming the player.
+          if (elapsed === 120 || secondsSinceSpawnRef.current >= 24) {
             secondsSinceSpawnRef.current = 0
 
             const currActive = activeAnomaliesRef.current
+            // Cap simultaneous active anomalies to max 3 so player is not spammed
             if (currActive.length < 3) {
               const occupiedLocIds = new Set(currActive.map((a) => a.locationId))
               const activeAnomalyIds = new Set(currActive.map((a) => a.anomaly.id))
               const reportedSet = new Set(reportedAnomalyIdsRef.current)
 
-              const eligibleLocations = GAME_LOCATIONS.filter((loc) => {
-                if (occupiedLocIds.has(loc.id)) return false
-                return loc.anomalies.some(
-                  (anom) => !reportedSet.has(anom.id) && !activeAnomalyIds.has(anom.id)
-                )
-              })
+              // Find next anomaly from queue whose location is currently free
+              // and hasn't been reported or currently active
+              const nextIndex = anomalyQueueRef.current.findIndex(
+                (item) =>
+                  !occupiedLocIds.has(item.locationId) &&
+                  !activeAnomalyIds.has(item.anomaly.id) &&
+                  !reportedSet.has(item.anomaly.id)
+              )
 
-              if (eligibleLocations.length > 0) {
-                const targetLoc = eligibleLocations[Math.floor(Math.random() * eligibleLocations.length)]
-                const availableAnoms = targetLoc.anomalies.filter(
-                  (anom) => !reportedSet.has(anom.id) && !activeAnomalyIds.has(anom.id)
-                )
-
-                if (availableAnoms.length > 0) {
-                  const randomAnom = availableAnoms[Math.floor(Math.random() * availableAnoms.length)]
-                  counterRef.current += 1
-                  const newActive: ActiveAnomalyState = {
-                    instanceId: `anomaly-${counterRef.current}-${randomAnom.id}`,
-                    locationId: targetLoc.id,
-                    angleIndex: randomAnom.angleIndex,
-                    anomaly: randomAnom,
-                    currentStage: 1,
-                    spawnedAt: Date.now(),
-                  }
-
-                  setActiveAnomalies((curr) => {
-                    if (curr.length >= 3) return curr
-                    return [...curr, newActive]
-                  })
+              if (nextIndex !== -1) {
+                const targetItem = anomalyQueueRef.current[nextIndex]
+                counterRef.current += 1
+                const newActive: ActiveAnomalyState = {
+                  instanceId: `anomaly-${counterRef.current}-${targetItem.anomaly.id}`,
+                  locationId: targetItem.locationId,
+                  angleIndex: targetItem.anomaly.angleIndex,
+                  anomaly: targetItem.anomaly,
+                  currentStage: 1,
+                  spawnedAt: Date.now(),
                 }
+
+                setActiveAnomalies((curr) => {
+                  if (curr.length >= 3) return curr
+                  return [...curr, newActive]
+                })
               }
             }
           }
@@ -287,6 +287,8 @@ export function CctvPatrolGame() {
     setActiveAnomalies([])
     setReportedAnomalyIds([])
     secondsSinceSpawnRef.current = 0
+    // Shuffles all 27 anomalies from all 6 locations so all of them are guaranteed to appear across 13 minutes!
+    anomalyQueueRef.current = [...ALL_GAME_ANOMALIES].sort(() => Math.random() - 0.5)
     setLocationIndex(0)
     setAngleIndex(0)
     setIsPaused(false)
@@ -755,7 +757,7 @@ export function CctvPatrolGame() {
             <div className="result-buttons-group">
               <button type="button" className="btn-result-action" onClick={handleStartGame}>
                 <RotateCcw className="w-5 h-5" />
-                <span>COBA LAGI (10 MENIT)</span>
+                <span>COBA LAGI (13 MENIT)</span>
               </button>
               <button
                 type="button"
@@ -778,7 +780,7 @@ export function CctvPatrolGame() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
           >
             <div className="result-trophy-badge">🏆</div>
-            <h1 className="result-title-green">BERHASIL BERTAHAN 10 MENIT!</h1>
+            <h1 className="result-title-green">BERHASIL BERTAHAN 13 MENIT!</h1>
             <p className="result-desc-text">
               Luar biasa! Kamu berhasil memantau CCTV dan mengamankan seluruh area sekolah dari teror
               anomali hingga fajar tiba.
@@ -802,7 +804,7 @@ export function CctvPatrolGame() {
             <div className="result-buttons-group">
               <button type="button" className="btn-result-action" onClick={handleStartGame}>
                 <RotateCcw className="w-5 h-5" />
-                <span>PATROLI LAGI (10 MENIT)</span>
+                <span>PATROLI LAGI (13 MENIT)</span>
               </button>
               <button
                 type="button"

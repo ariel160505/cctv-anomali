@@ -320,6 +320,22 @@ export const ALL_CAMERA_ANGLES: FlatCameraAngle[] = GAME_LOCATIONS.flatMap(
     }))
 ).map((item, idx) => ({ ...item, globalIndex: idx }))
 
+export type LocationAnomalyItem = {
+  locationId: string
+  locationName: string
+  camNumber: string
+  anomaly: AnomalyDef
+}
+
+export const ALL_GAME_ANOMALIES: LocationAnomalyItem[] = GAME_LOCATIONS.flatMap((loc) =>
+  loc.anomalies.map((anom) => ({
+    locationId: loc.id,
+    locationName: loc.name,
+    camNumber: loc.camNumber,
+    anomaly: anom,
+  }))
+)
+
 export const ANOMALY_REPORT_OPTIONS: {
   type: AnomalyType
   label: string
