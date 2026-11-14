@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { getLeaderboard, type LeaderboardEntry } from '@/lib/game-data'
+import { PwaInstallModal } from '@/components/game/pwa-install-modal'
 
 const PREVIEW_IMAGES = [
   '/images/game/gedung-smk/GSMK1-asli.jpg',
@@ -40,6 +41,7 @@ type LobbyScreenProps = {
 export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps) {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [showGuide, setShowGuide] = useState(false)
+  const [showInstallModal, setShowInstallModal] = useState(false)
   const [flicker, setFlicker] = useState(false)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [isInstalled, setIsInstalled] = useState(false)
@@ -53,25 +55,34 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
         Boolean((window.navigator as any).standalone)
       setIsInstalled(isStandalone)
 
-      const handleInstalled = () => setIsInstalled(true)
+      // Automatically show install popup on web open if not standalone and not dismissed this session
+      if (!isStandalone) {
+        const dismissed = sessionStorage.getItem('pwa_prompt_dismissed_session')
+        if (!dismissed) {
+          const t = setTimeout(() => {
+            setShowInstallModal(true)
+          }, 600)
+          return () => clearTimeout(t)
+        }
+      }
+
+      const handleInstalled = () => {
+        setIsInstalled(true)
+        setShowInstallModal(false)
+      }
       window.addEventListener('pwa-installed', handleInstalled)
       return () => window.removeEventListener('pwa-installed', handleInstalled)
     }
   }, [])
 
-  const handleInstallClick = async () => {
-    if (typeof window === 'undefined') return
-    const promptEvent = (window as any).__pwaInstallPrompt
-    if (promptEvent) {
-      promptEvent.prompt()
-      const choice = await promptEvent.userChoice
-      if (choice && choice.outcome === 'accepted') {
-        setIsInstalled(true)
-      }
-    } else {
-      alert(
-        'Untuk memasang game ini di komputer/laptop:\n\n1. Klik ikon "Install" (layar/komputer kecil) di bilah alamat browser kamu (Google Chrome / Microsoft Edge).\n2. Atau klik menu titik tiga browser (⋮) lalu pilih "Install CCTV : Aqis".\n\nGame akan terpasang sebagai aplikasi mandiri di komputer!'
-      )
+  const handleInstallClick = () => {
+    setShowInstallModal(true)
+  }
+
+  const handleCloseInstallModal = () => {
+    setShowInstallModal(false)
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('pwa_prompt_dismissed_session', 'true')
     }
   }
 
@@ -202,7 +213,7 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
           </div>
 
           <footer className="lobby-device-notice">
-            <span>🖥️ GAME INI KHUSUS UNTUK PERANGKAT KOMPUTER / LAPTOP</span>
+            <span>🖥️📱 TERSEDIA UNTUK KOMPUTER & HP (DISARANKAN MODE LANDSCAPE)</span>
           </footer>
         </div>
 
@@ -323,6 +334,12 @@ export function LobbyScreen({ isMuted, onToggleMute, onStart }: LobbyScreenProps
           </div>
         )}
       </AnimatePresence>
+      {/* Big PWA Download / Install Popup Modal */}
+      <PwaInstallModal
+        isOpen={showInstallModal}
+        onClose={handleCloseInstallModal}
+        onInstalled={() => setIsInstalled(true)}
+      />
     </main>
   )
 }

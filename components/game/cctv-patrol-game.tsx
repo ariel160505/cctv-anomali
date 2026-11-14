@@ -396,6 +396,12 @@ export function CctvPatrolGame() {
       {/* 2. SURVEILLANCE GAME SCREEN (FULL SCREEN 100%) */}
       {screen === 'game' && (
         <main className="game-desktop-workspace">
+          {/* Mobile Portrait Orientation Hint */}
+          <div className="mobile-portrait-rotate-tip">
+            <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+            <span>Disarankan putar HP ke mendatar (landscape) untuk pantauan CCTV penuh</span>
+          </div>
+
           {/* Top Surveillance Header Bar */}
           <header className="game-top-hud">
             {/* Left: Pause Hamburger Menu Button */}
